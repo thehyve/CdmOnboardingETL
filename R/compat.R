@@ -111,18 +111,15 @@ compat <- function(r, target_version = package_version('3.0.0')) {
         r$vocabularyResults$mappedUnitsObs <- .fixDataFrameNames(r$vocabularyResults$mappedUnitsObs)
     }
     r <- .fixP_RECORDS(r)
-    
+
     if (is.null(r$performanceResults$packinfo)) {
         r$performanceResults$sys_details <- r$sys_details
         r$performanceResults$dmsVersion <- r$dmsVersion
         r$performanceResults$packinfo <- data.frame(r$packinfo)
-        r$performanceResults$hadesPackageVersions <- r$hadesPackageVersions
-        r$performanceResults$darwinPackageVersions <- r$darwinPackageVersions
-    
+
         r$packinfo <- NULL
         r$dmsVersion <- NULL
         r$sys_details <- NULL
-        r$hadesPackageVersions <- NULL
     }
 
     return(r)

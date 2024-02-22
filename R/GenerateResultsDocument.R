@@ -52,18 +52,16 @@ pkg.env$sources <- list(
 #' @export
 generateResultsDocument <- function(results, outputFolder, authors, silent = FALSE) {
   docTemplate <- system.file("templates", "Template-DarwinEU.docx", package = "CdmOnboarding")
-  logo <- system.file("templates", "img", "darwin-logo.jpg", package = "CdmOnboarding")
 
   # open a new doc from the doctemplate
   doc <- officer::read_docx(path = docTemplate)
 
   # add Title Page
   doc <- doc %>%
-    officer::body_add_img(logo, width = 5.00, height = 2.39, style = pkg.env$styles$title) %>%
     officer::body_add_par(sprintf(
       "CDM Onboarding report for the %s database",
       results$databaseName
-      ), style = pkg.env$styles$title) %>%
+    ), style = pkg.env$styles$title) %>%
     officer::body_add_par(paste(authors, collapse = ","), style = pkg.env$styles$subTitle) %>%
     officer::body_add_break()
 
@@ -254,8 +252,8 @@ generateResultsDocument <- function(results, outputFolder, authors, silent = FAL
       my_body_add_table(obsPeriodStats) %>%
       officer::body_add_par(
         sprintf("Queries executed in %.2f seconds and %.2f seconds",
-          df$observationPeriodsPerPerson$duration,
-          df$observationPeriodOverlap$duration
+                df$observationPeriodsPerPerson$duration,
+                df$observationPeriodOverlap$duration
         ), style = pkg.env$styles$footnote)
 
     df$dateRangeByTypeConcept$result <- df$dateRangeByTypeConcept$result %>%
@@ -264,8 +262,8 @@ generateResultsDocument <- function(results, outputFolder, authors, silent = FAL
         `N` = COUNT_VALUE,
         `Type` = sprintf("%s (%s)", TYPE_CONCEPT_NAME, TYPE_STANDARD_CONCEPT),
         `Start date [Min, Max]` = sprintf(
-          "[%s, %s]", 
-          substr(FIRST_START_DATE, 1, 7), 
+          "[%s, %s]",
+          substr(FIRST_START_DATE, 1, 7),
           substr(LAST_START_DATE, 1, 7)
         ),
         `End date [Min, Max]` = sprintf(
@@ -305,58 +303,25 @@ generateResultsDocument <- function(results, outputFolder, authors, silent = FAL
       my_table_caption("Length of stay by visit concept. The length should be interpreted as number of nights, meaning a length of 0 is a same-day visit.", sourceSymbol = pkg.env$sources$achilles) %>%
       my_body_add_table_runtime(df$visitLength)
 
-    # Day of the week and month
-    combinedPlot <- cowplot::ggdraw()
-    if (!is.null(df$dayOfTheWeek$result)) {
-      dayOfTheWeekPlot <- .heatMapPlot(df$dayOfTheWeek$result, "DAY_OF_THE_WEEK")
-      combinedPlot <- combinedPlot +
-        cowplot::draw_plot(dayOfTheWeekPlot, x = 0, y = .48, width = .5, height = .5) +
-        cowplot::draw_plot_label("Day of the Week", x = .15, y = .99, size = 15)
-    } else {
-      doc <- doc %>%
-        officer::body_add_par("No Day of the Week results.")
-    }
-
-    if (!is.null(df$dayOfTheMonth$result)) {
-      dayOfTheMonthPlot <- .heatMapPlot(df$dayOfTheMonth$result, "DAY_OF_THE_MONTH")
-      combinedPlot <- combinedPlot +
-        cowplot::draw_plot(dayOfTheMonthPlot, x = .5, y = 0, width = .5, height = 1) +
-        cowplot::draw_plot_label("Day of the Month", x = .65, y = .98, size = 15)
-    } else {
-      doc <- doc %>%
-        officer::body_add_par("No Day of the Month results.")
-    }
-
-    doc <- doc %>%
-      officer::body_add_gg(combinedPlot, scale = .5) %>%
-      my_figure_caption("Day of the Week and Day of the Month distribution of event start dates after 1900-01-01 per domain. 1 = Monday ... 7 = Sunday.", sourceSymbol = pkg.env$sources$cdm) %>% #nolint
-      officer::body_add_par(
-        sprintf("Queries executed in %.2f seconds and %.2f seconds",
-          df$dayOfTheWeek$duration,
-          df$dayOfTheMonth$duration
-        ),
-        style = pkg.env$styles$footnote
-      )
-
     # Day, Month, Year of Birth
     doc <- doc %>%
-        officer::body_add_par("Day, Month, Year of Birth", style = pkg.env$styles$heading2)
+      officer::body_add_par("Day, Month, Year of Birth", style = pkg.env$styles$heading2)
     if (!is.null(df$dayMonthYearOfBirth$result)) {
-        df$dayMonthYearOfBirth$result <- df$dayMonthYearOfBirth$result %>%
-          arrange(desc(VARIABLE)) %>% # Year, Month, Day
-          mutate(
-            ` ` = VARIABLE,
-            `%Missing` = prettyPc(P_MISSING),
-            MIN = MIN_VALUE,
-            P10 = P10_VALUE,
-            P25 = P25_VALUE,
-            MEDIAN = MEDIAN_VALUE,
-            P75 = P75_VALUE,
-            P90 = P90_VALUE,
-            MAX = MAX_VALUE,
-            .keep = "none"  # do not display other columns
-          )
-       doc <- doc %>%
+      df$dayMonthYearOfBirth$result <- df$dayMonthYearOfBirth$result %>%
+        arrange(desc(VARIABLE)) %>% # Year, Month, Day
+        mutate(
+          ` ` = VARIABLE,
+          `%Missing` = prettyPc(P_MISSING),
+          MIN = MIN_VALUE,
+          P10 = P10_VALUE,
+          P25 = P25_VALUE,
+          MEDIAN = MEDIAN_VALUE,
+          P75 = P75_VALUE,
+          P90 = P90_VALUE,
+          MAX = MAX_VALUE,
+          .keep = "none"  # do not display other columns
+        )
+      doc <- doc %>%
         my_table_caption("Distribution of day, month and year of birth of persons.", sourceSymbol = pkg.env$sources$cdm) %>%
         my_body_add_table_runtime(
           df$dayMonthYearOfBirth,
@@ -529,19 +494,19 @@ generateResultsDocument <- function(results, outputFolder, authors, silent = FAL
 
     dedResults$result <- dedResults$result %>%
       mutate(
-          `Ingredient` = ingredient,
-          `Concept ID` = ingredient_concept_id,
-          `#` = n_records,
-          `Type (n,%)` = proportion_of_records_by_drug_type,
-          `Route (n,%)` = proportion_of_records_by_route_type,
-          `Dose Form present n (%)` = proportion_of_records_with_dose_form,
-          `Fixed amount dose form n (%)` = proportion_of_records_missing_denominator_unit_concept_id,
-          `Amount distrib. [null or missing]` = median_amount_value_q05_q95,
-          `Quantity distrib. [null or missing]` = median_quantity_q05_q95,
-          `Exposure days distrib. [null or missing]` = median_drug_exposure_days_q05_q95,
-          `Neg. Days n (%)` = proportion_of_records_with_negative_drug_exposure_days,
-          .keep = "none"  # do not display other columns
-        )
+        `Ingredient` = ingredient,
+        `Concept ID` = ingredient_concept_id,
+        `#` = n_records,
+        `Type (n,%)` = proportion_of_records_by_drug_type,
+        `Route (n,%)` = proportion_of_records_by_route_type,
+        `Dose Form present n (%)` = proportion_of_records_with_dose_form,
+        `Fixed amount dose form n (%)` = proportion_of_records_missing_denominator_unit_concept_id,
+        `Amount distrib. [null or missing]` = median_amount_value_q05_q95,
+        `Quantity distrib. [null or missing]` = median_quantity_q05_q95,
+        `Exposure days distrib. [null or missing]` = median_drug_exposure_days_q05_q95,
+        `Neg. Days n (%)` = proportion_of_records_with_negative_drug_exposure_days,
+        .keep = "none"  # do not display other columns
+      )
 
     doc <- doc %>%
       my_table_caption(
@@ -572,33 +537,6 @@ generateResultsDocument <- function(results, outputFolder, authors, silent = FAL
 
   df_pr <- results$performanceResults
   if (!is.null(df_pr)) {
-    # Installed packages
-    allPackages <- data.frame(
-      Package = c(getHADESpackages(), getDARWINpackages()),
-      Version = "",
-      Organisation = c(rep("OHDSI HADES", length(getHADESpackages())), rep("DARWIN EU\u00AE", length(getDARWINpackages())))
-    )
-
-    packageVersions <- dplyr::union(df_pr$hadesPackageVersions, df_pr$darwinPackageVersions) %>%
-      dplyr::full_join(allPackages, by = c("Package")) %>%
-      dplyr::mutate(
-        Version = dplyr::coalesce(Version.x, "Not installed")
-      ) %>%
-      # Sorting on LibPath to get packages in same environment together (if multiple versions of the same package installed due to renvs)
-      dplyr::arrange(Organisation, LibPath, Package) %>%
-      dplyr::select(Organisation, Package, Version)
-
-    doc <- doc %>%
-      officer::body_add_par("R packages", style = pkg.env$styles$heading2) %>%
-      my_table_caption(
-        paste(
-          "Versions of all installed R packages from DARWIN EU\u00AE and the OHDSI Health Analytics Data-to-Evidence Suite (HADES).",
-          "Packages can be installed from CRAN (install.packages(\"<package_name>\")) or Github (remotes::install_github(\"<organisation>/<package>\"))"
-        ),
-        sourceSymbol = pkg.env$sources$system
-      ) %>%
-      my_body_add_table(packageVersions)
-
     #system detail
     doc <- doc %>%
       officer::body_add_par("System Information", style = pkg.env$styles$heading2) %>%

@@ -48,14 +48,40 @@ if (!require(CdmOnboarding)) {
 # SECTION 2: Set Local Details
 # *******************************************************
 library(CdmOnboarding)
+library(Achilles)
+library(DashboardExport)
+remotes::install_github('darwin-eu/DashboardExport')
+
+achilles(
+  connectionDetails,
+  cdmDatabaseSchema,
+  resultsDatabaseSchema = cdmDatabaseSchema,
+  scratchDatabaseSchema = resultsDatabaseSchema,
+  vocabDatabaseSchema = cdmDatabaseSchema,
+  tempEmulationSchema = resultsDatabaseSchema,
+  createTable = TRUE,
+  smallCellCount = 5,
+  cdmVersion = "5.4",
+  createIndices = TRUE,
+  numThreads = 1,
+  tempAchillesPrefix = "tmpach",
+  dropScratchTables = TRUE,
+  sqlOnly = FALSE,
+  outputFolder = "output",
+  verboseMode = TRUE,
+  optimizeAtlasCache = FALSE,
+  defaultAnalysesOnly = FALSE,
+  updateGivenAnalysesOnly = FALSE,
+  sqlDialect = NULL
+)
 
 # fill out the connection details -----------------------------------------------------------------------
-dbms <- Sys.getenv("DBMS")
-user <- Sys.getenv("DB_USER")
-password <- Sys.getenv("DB_PASSWORD")
-server <- Sys.getenv("DB_SERVER")
-port <- Sys.getenv("DB_PORT")
-pathToDriver <- Sys.getenv("PATH_TO_DRIVER")
+dbms <- 'postgresql' # Sys.getenv("DBMS")
+user <- 'ohdsi' # Sys.getenv("DB_USER")
+password <- 'ohdsi' # Sys.getenv("DB_PASSWORD")
+server <- 'localhost/postgres' # Sys.getenv("DB_SERVER")
+port <- 5432 # Sys.getenv("DB_PORT")
+pathToDriver <- '~/Documents/postgresqlV42.2.18/' # Sys.getenv("PATH_TO_DRIVER")
 connectionDetails <- DatabaseConnector::createConnectionDetails(
   dbms = dbms,
   server = server,
@@ -66,19 +92,20 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
 )
 
 # Details for connecting to the CDM
-cdmDatabaseSchema <- Sys.getenv("CDM_SCHEMA")
-resultsDatabaseSchema <- Sys.getenv("RESULTS_SCHEMA")
+cdmDatabaseSchema <- 'cdm_tsc' # Sys.getenv("CDM_SCHEMA")
+resultsDatabaseSchema <- 'results' # Sys.getenv("RESULTS_SCHEMA")
+# vocabDatabaseSchema <- 'vocab' #cdmDatabaseSchema
 oracleTempSchema <- NULL
 
 # Details specific to the database:
-databaseId <- Sys.getenv("DATABASE_ID")
-authors <- c('<author_1>', '<author_2>') # used on the title page
+databaseId <- 'Test' # Sys.getenv("DATABASE_ID")
+authors <- c('C-path') # used on the title page
 
 # URL to the WebAPI that your local Atlas instance uses, e.g. http://localhost:8080/WebAPI
-baseUrl <- Sys.getenv("WEBAPI_BASEURL")
+baseUrl <- 'http://localhost:8080/WebAPI' # Sys.getenv("WEBAPI_BASEURL")
 
 # (optional) Path to your DQD results file
-dqdJsonPath <- 'extras/example_input/dqd_synthea20k.json'
+dqdJsonPath <- '~/Documents/CdmOnboarding/output/results_TSC.json'
 
 outputFolder <- file.path(getwd(), "output", databaseId)
 smallCellCount <- 5
@@ -95,9 +122,7 @@ results <- CdmOnboarding::cdmOnboarding(
   databaseId = databaseId,
   authors = authors,
   smallCellCount = smallCellCount,
-  baseUrl = baseUrl,
   outputFolder = outputFolder,
-  dqdJsonPath = dqdJsonPath
 )
 
 # cdmOnboarding() should already generate the resultsdocument.
