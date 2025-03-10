@@ -1,6 +1,6 @@
 Package: CdmOnboarding
 Title: Generate Onboarding Report on an OMOP CDM Instance
-Version: 3.3.4
+Version: 3.3.4.900
 Authors@R: 
   c(person(given = "Peter",
            family = "Rijnbeek",
