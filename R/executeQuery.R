@@ -23,38 +23,29 @@
 #' Execute sql file on the given connectionDetails
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param sqlFileName                      Name of the SQL file to execute
+#' @param sqlFolder                        (Optional) Path to the SQL file (default: 'checks')
 #' @param successMessage                   Message to log when the query is successful
-#' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param conn                             An active connection object to use
 #' @param sqlOnly                          Boolean indicating if only the SQL should be written to file
-#' @param activeConnection                 An active connection object to use
-#' @param useExecuteSql                    Boolean indicating if the query should be executed using \code{executeSql} instead of \code{querySql}
+#' @param useExecuteSql                    Boolean indicating if the query should be executed using \code{dbExecute} instead of \code{dbGetQuery}
 #' @param ...                              Additional parameters to pass to SqlRender::loadRenderTranslateSql
 #' @returns result of the query
 executeQuery <- function(
   outputFolder,
   sqlFileName,
+  sqlFolder = "checks",
   successMessage = NULL,
-  connectionDetails = NULL,
+  connection = NULL,
   sqlOnly = FALSE,
-  activeConnection = NULL,
   useExecuteSql = FALSE,
-  ...) {
-  if (!is.null(connectionDetails)) {
-    dbms <- connectionDetails$dbms
-  } else {
-    dbms <- activeConnection@dbms
-  }
-
-  if (is.null(successMessage)) {
-    successMessage <- sprintf("'%s' executed successfully", sqlFileName)
-  }
-
+  ...
+) {
   sql <- do.call(
     SqlRender::loadRenderTranslateSql,
     c(
-      sqlFilename = file.path("checks", sqlFileName),
+      sqlFilename = file.path(sqlFolder, sqlFileName),
       packageName = "CdmOnboarding",
-      dbms = dbms,
+      dbms = connection@dbms,
       warnOnMissingParameters = FALSE,
       list(...)
     )
@@ -71,12 +62,6 @@ executeQuery <- function(
   tryCatch({
     start_time <- Sys.time()
 
-    if (is.null(activeConnection)) {
-      connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-    } else {
-      connection <- activeConnection
-    }
-
     if (useExecuteSql) {
       DatabaseConnector::executeSql(
         connection = connection,
@@ -92,18 +77,22 @@ executeQuery <- function(
       )
     }
 
+    # query <- SqlRender::loadSql(sql) # no need to translate again
+    # if (useExecuteSql) {
+    #   DBI::dbExecute(con, query)
+    # } else {
+    #   result <- DBI::dbGetQuery(conn, query)
+    # }
+
     duration <- as.numeric(difftime(Sys.time(), start_time), units = "secs")
+    if (is.null(successMessage)) {
+      successMessage <- sprintf("'%s' executed successfully", sqlFileName)
+    }
     ParallelLogger::logInfo(sprintf("> %s in %.2f secs", successMessage, duration))
   },
   error = function(e) {
     ParallelLogger::logError(e)
     ParallelLogger::logError(sprintf("> Query failed. See '%s' for more details", errorReportFile))
-  },
-  finally = {
-    if (is.null(activeConnection)) {
-      DatabaseConnector::disconnect(connection = connection)
-      rm(connection)
-    }
   })
 
   return(list(result = result, duration = duration))

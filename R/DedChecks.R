@@ -20,27 +20,9 @@
 # @author Maxim Moinat
 
 #' Run DrugExposureDiagnostics for a set of default ingredient concepts
-#' @param connectionDetails An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema Fully qualified name of database schema that contains OMOP CDM schema.
-#'                          On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
-#' @param scratchDatabaseSchema Fully qualified name of database schema where temporary tables can be written.
+#' @param cdm An R object of type \code{cdm_reference}
 #' @returns list of DED diagnostics_summary and duration
-.runDedChecks <- function(
-  connectionDetails,
-  cdmDatabaseSchema,
-  scratchDatabaseSchema
-) {
-  connection <- .getCdmConnection(connectionDetails)
-
-  on.exit(.disconnectCdmConnection(connection))
-
-  cdm <- CDMConnector::cdmFromCon(
-    connection,
-    cdmSchema = cdmDatabaseSchema,
-    writeSchema = scratchDatabaseSchema,
-    .softValidation = TRUE
-  )
-
+.runDedChecks <- function(cdm) {
   dedVersion <- packageVersion(pkg = "DrugExposureDiagnostics")
   if (dedVersion <= '1.0.5') {
     ParallelLogger::logError(sprintf(
