@@ -28,13 +28,13 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.0
 Depends: 
-  R (>= 4.0.0)
+  R (>= 4.2.0)
 Imports:
   DatabaseConnector (>= 5.0.2),
   ParallelLogger,
   SqlRender,
   DrugExposureDiagnostics (>= 1.1.0),
-  CDMConnector (>= 1.0.0),
+  CDMConnector (>= 2.0.0),
   DBI,
   benchmarkme,
   prettyunits,
@@ -59,7 +59,5 @@ Suggests:
   devtools,
   testthat (>= 3.0.0),
   withr,
-  Achilles
-Remotes:
-  OHDSI/Achilles
+  Achilles (>= 1.7.2)
 Config/testthat/edition: 3
