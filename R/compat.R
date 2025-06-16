@@ -138,6 +138,7 @@ compat <- function(r, target_version = package_version('3.0')) {
   }
 
   # Performance
+  print('holla')
   if (is.null(r$performanceResults$packinfo)) {
     r$performanceResults$sys_details <- r$sys_details
     r$performanceResults$dmsVersion <- r$dmsVersion
@@ -149,6 +150,21 @@ compat <- function(r, target_version = package_version('3.0')) {
     r$dmsVersion <- NULL
     r$sys_details <- NULL
     r$hadesPackageVersions <- NULL
+  }
+  if (is.null(r$performanceResults$darwinPackageVersions)) {
+    print("No darwinPackageVersio ns found, creating empty data frame")
+    r$performanceResults$darwinPackageVersions <- data.frame(
+      Package = character(0),
+      Version = character(0),
+      LibPath = character(0)
+    )
+  }
+
+  if (is.null(r$performanceResults$hadesPackageVersions$LibPath)) {
+    r$performanceResults$hadesPackageVersions$LibPath <- character(nrow(r$performanceResults$hadesPackageVersions))
+  }
+  if (is.null(r$performanceResults$darwinPackageVersions$LibPath)) {
+    r$performanceResults$darwinPackageVersions$LibPath <- character(nrow(r$performanceResults$darwinPackageVersions))
   }
 
   return(r)

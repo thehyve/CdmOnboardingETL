@@ -12,6 +12,8 @@ results$drugExposureDiagnostics <- ded_results
 
 # Optional, make compatible with current version
 results <- CdmOnboarding::compat(results)
+# source('R/compat.R')
+# results <- compat(results)
 
 # options(error = traceback)
 # devtools::install(quick = TRUE, upgrade = 'never')
