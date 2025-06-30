@@ -40,11 +40,18 @@ exportDedResults <- function(
   outputFolder = getwd()
 ) {
   df_ded <- results$drugExposureDiagnostics
-  if (length(df_ded$result) == 0) {
+  .exportDedResultsFromDed(df_ded)
+}
+
+#' @export
+exportDedResultsFromDed <- function(
+  df_ded,
+  outputFolder = getwd()
+) {
+  if (nrow(df_ded$result) == 0) {
     ParallelLogger::logInfo("No DrugExposureDiagnostics results to export")
     return()
   }
-
   dedVersion <- .getDedVersion(df_ded)
 
   dedResult <- .formatDedResults(df_ded$result, dedVersion)
@@ -118,10 +125,9 @@ exportDedResults <- function(
 }
 
 .getDedVersion <- function(df) {
-  tryCatch(
-    df$packageVersion,
-    error = function(e) {
-      "Unknown"
-    }
-  )
+  if (!is.null(df$packageVersion)) {
+    return(df$packageVersion)
+  } else {
+    return("Unknown")
+  }
 }

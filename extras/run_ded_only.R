@@ -45,4 +45,4 @@ dedSummary <- list(
 outputPath <- './'
 
 saveRDS(dedSummary, file.path(outputPath, "dedSummary.rds"))
-exportDedResults(outputPath)
+exportDedResultsFromDed(dedSummary, outputPath)
