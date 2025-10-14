@@ -71,7 +71,7 @@ exportDedResultsFromDed <- function(
       file = file.path(outputFolder, outputFilename),
       row.names = TRUE # first column will be removed when uploading to portal
     )
-  ParallelLogger::logInfo(sprintf("DrugExposureDiagnostics results written to '%s'", outputFilename))
+  ParallelLogger::logInfo(sprintf("> DrugExposureDiagnostics results written to '%s'", file.path(outputFolder, outputFilename)))
 }
 
 .formatDedResults <- function(ded_results, dedVersion) {

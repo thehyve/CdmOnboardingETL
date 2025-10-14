@@ -242,9 +242,11 @@ cdmOnboarding <- function(
     )
   }
 
-  logger <- ParallelLogger::createLogger(name = "cdmOnboarding",
-                                         threshold = "INFO",
-                                         appenders = appenders)
+  logger <- ParallelLogger::createLogger(
+    name = "cdmOnboarding",
+    threshold = "INFO",
+    appenders = appenders
+  )
   ParallelLogger::registerLogger(logger)
 
   start_time <- Sys.time()
@@ -288,6 +290,21 @@ cdmOnboarding <- function(
     ))
     return(NULL)
   }
+
+  # Snapshot -------------------------
+  cdmSnapshot <- tryCatch({
+    CDMConnector::snapshot(cdm, computeDataHash = TRUE)
+  }, error = function(e) {
+    ParallelLogger::logWarn("Could not create snapshot file: ", e)
+    NULL
+  })
+
+  cdmHashByTable <- tryCatch({
+    CDMConnector::computeDataHashByTable(cdm)
+  }, error = function(e) {
+    ParallelLogger::logWarn("Could not create dataHashByTable: ", e)
+    NULL
+  })
 
   # Check whether Achilles output is available and get Achilles run info ---------------------------------------
   achillesMetadata <- NULL
@@ -437,6 +454,8 @@ cdmOnboarding <- function(
     webAPIversion = webApiVersion,
     dms = connection@dbms,
     cdmSource = cdmSource,
+    cdmSnapshot = cdmSnapshot,
+    cdmHashByTable = cdmHashByTable,
     achillesMetadata = achillesMetadata,
     smallCellCount = smallCellCount,
     runWithOptimizedQueries = optimize,
