@@ -36,7 +36,6 @@
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param cdmVersion                       Define the OMOP CDM version used: currently supports v5 and above.
 #'                                         Use major release number or minor number only (e.g. 5, 5.3)
-#' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param optimize                         Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
@@ -45,7 +44,6 @@ dataTablesChecks <- function(connection,
                              cdmDatabaseSchema,
                              resultsDatabaseSchema,
                              cdmVersion,
-                             sqlOnly = FALSE,
                              outputFolder = "output",
                              optimize = FALSE) {
   if (optimize && connection@dbms == "postgresql") {
@@ -82,7 +80,6 @@ dataTablesChecks <- function(connection,
       outputFolder = outputFolder,
       sqlFileName = sqlFileName,
       connection = connection,
-      sqlOnly = sqlOnly,
       cdmDatabaseSchema = cdmDatabaseSchema,
       resultsDatabaseSchema = resultsDatabaseSchema,
       cdmVersion = cdmVersion

@@ -49,7 +49,6 @@
 #' @param runCohortBenchmarkChecks         Boolean to determine if CohortBenchMark checks need to be run. Default = TRUE
 #' @param smallCellCount                   To avoid patient identifiability, source values with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions. (default 5)
 #' @param baseUrl                          WebAPI url, example: http://server.org:80/WebAPI
-#' @param sqlOnly                          If TRUE, queries will be written to file instead of executed. Not supported for DED Checks.
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE
 #' @param dqdJsonPath                      Path to the json of the DQD
@@ -94,7 +93,6 @@ cdmOnboarding <- function(
   runCohortBenchmarkChecks = TRUE,
   smallCellCount = 5,
   baseUrl = NULL,
-  sqlOnly = FALSE,
   outputFolder = "output",
   verboseMode = TRUE,
   dqdJsonPath = NULL,
@@ -143,7 +141,6 @@ cdmOnboarding <- function(
     runCohortBenchmarkChecks = runCohortBenchmarkChecks,
     smallCellCount = smallCellCount,
     baseUrl = baseUrl,
-    sqlOnly = sqlOnly,
     outputFolder = outputFolder,
     verboseMode = verboseMode,
     dqdJsonPath = dqdJsonPath,
@@ -155,20 +152,19 @@ cdmOnboarding <- function(
   }
 
   documentGenerated <- NULL
-  if (!sqlOnly) {
-    documentGenerated <- tryCatch({
-      generateResultsDocument(
-        results = results,
-        outputFolder = outputFolder,
-        authors = authors
-      )
-      TRUE
-    }, error = function(e) {
-      ParallelLogger::logError("Could not generate results document: ", e)
-      ParallelLogger::logInfo("Results from the checks have been saved as an RDS object to the output folder.")
-      FALSE
-    })
-  }
+
+  documentGenerated <- tryCatch({
+    generateResultsDocument(
+      results = results,
+      outputFolder = outputFolder,
+      authors = authors
+    )
+    TRUE
+  }, error = function(e) {
+    ParallelLogger::logError("Could not generate results document: ", e)
+    ParallelLogger::logInfo("Results from the checks have been saved as an RDS object to the output folder.")
+    FALSE
+  })
 
   if (runDedChecks) {
     tryCatch({
@@ -216,7 +212,6 @@ cdmOnboarding <- function(
   runCohortBenchmarkChecks,
   smallCellCount,
   baseUrl,
-  sqlOnly,
   outputFolder,
   verboseMode,
   dqdJsonPath,
@@ -278,10 +273,10 @@ cdmOnboarding <- function(
   ))
 
   # Get source name from cdm_source if none provided --------------------------------------------
-  if (missing(databaseName) && !sqlOnly) {
+  if (missing(databaseName)) {
     databaseName <- cdmSource$CDM_SOURCE_NAME
   }
-  if (missing(databaseDescription) && !sqlOnly) {
+  if (missing(databaseDescription)) {
     databaseDescription <- cdmSource$SOURCE_DESCRIPTION
   }
 
@@ -296,21 +291,20 @@ cdmOnboarding <- function(
 
   # Check whether Achilles output is available and get Achilles run info ---------------------------------------
   achillesMetadata <- NULL
-  if (!sqlOnly) {
-    achillesTablesExists <- .checkAchillesTablesExist(connection, resultsDatabaseSchema)
-    achillesMetadata <- .getAchillesMetadata(connection, resultsDatabaseSchema, outputFolder)
-    if (is.null(achillesMetadata) || !achillesTablesExists) {
-      ParallelLogger::logError("The output from the Achilles analyses is required.")
-      ParallelLogger::logError(sprintf(
-        "Please run Achilles first and make sure the resulting Achilles tables are in the given results schema ('%s').",
-        resultsDatabaseSchema
-      ))
-      return(NULL)
-    }
-    if (utils::compareVersion(achillesMetadata$ACHILLES_VERSION, '1.7') < 1) {
-      ParallelLogger::logWarn(sprintf("Results from an outdated Achilles version (v%s) were detected, please consider installing the latest release of Achilles and rerun CdmOnboarding.", achillesMetadata$ACHILLES_VERSION)) #nolint
-    }
+  achillesTablesExists <- .checkAchillesTablesExist(connection, resultsDatabaseSchema)
+  achillesMetadata <- .getAchillesMetadata(connection, resultsDatabaseSchema, outputFolder)
+  if (is.null(achillesMetadata) || !achillesTablesExists) {
+    ParallelLogger::logError("The output from the Achilles analyses is required.")
+    ParallelLogger::logError(sprintf(
+      "Please run Achilles first and make sure the resulting Achilles tables are in the given results schema ('%s').",
+      resultsDatabaseSchema
+    ))
+    return(NULL)
   }
+  if (utils::compareVersion(achillesMetadata$ACHILLES_VERSION, '1.7') < 1) {
+    ParallelLogger::logWarn(sprintf("Results from an outdated Achilles version (v%s) were detected, please consider installing the latest release of Achilles and rerun CdmOnboarding.", achillesMetadata$ACHILLES_VERSION)) #nolint
+  }
+
 
   # Check whether results for required Achilles analyses is available. Generate soft warning.
   # At least require person, obs. period, condition and drug exposure. Other domains can be empty.
@@ -349,7 +343,6 @@ cdmOnboarding <- function(
       resultsDatabaseSchema = resultsDatabaseSchema,
       cdmVersion = cdmVersion,
       outputFolder = outputFolder,
-      sqlOnly = sqlOnly,
       optimize = optimize
     )
   }
@@ -364,7 +357,6 @@ cdmOnboarding <- function(
       smallCellCount = smallCellCount,
       cdmVersion = cdmVersion,
       outputFolder = outputFolder,
-      sqlOnly = sqlOnly,
       optimize = optimize
     )
   }
@@ -380,7 +372,6 @@ cdmOnboarding <- function(
       resultsDatabaseSchema = resultsDatabaseSchema,
       scratchDatabaseSchema = scratchDatabaseSchema,
       cdmVersion = cdmVersion,
-      sqlOnly = sqlOnly,
       outputFolder = outputFolder
     )
   }
@@ -455,8 +446,9 @@ cdmOnboarding <- function(
   )
 
   tryCatch({
-    saveRDS(results, file.path(outputFolder, sprintf("onboarding_results_%s_%s.rds", databaseId, format(Sys.time(), "%Y%m%d"))))
-    ParallelLogger::logInfo("> The CDM Onboarding results have been exported to ", outputFolder)
+    outFilePath <- file.path(outputFolder, sprintf("onboarding_results_%s_%s.rds", databaseId, format(Sys.time(), "%Y%m%d")))
+    saveRDS(results, outFilePath)
+    ParallelLogger::logInfo("> The CDM Onboarding results have been exported to ", outFilePath)
   }, error = function(e) {
     ParallelLogger::logWarn("> Failed to export CDM Onboarding results object, no rds file has been created: ", e)
   })

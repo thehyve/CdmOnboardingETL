@@ -40,7 +40,7 @@ exportDedResults <- function(
   outputFolder = getwd()
 ) {
   df_ded <- results$drugExposureDiagnostics
-  .exportDedResultsFromDed(df_ded)
+  exportDedResultsFromDed(df_ded)
 }
 
 #' @export

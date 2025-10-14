@@ -37,7 +37,6 @@
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param scratchDatabaseSchema            Fully qualified name of database schema where temporary tables can be written.
 #' @param cdmVersion                       Version of the CDM to check against. Default is "5.4".
-#' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param outputFolder                     Path to store logs and SQL files
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @export
@@ -48,7 +47,6 @@ performanceChecks <- function(
   resultsDatabaseSchema,
   scratchDatabaseSchema,
   cdmVersion = "5.4",
-  sqlOnly = FALSE,
   outputFolder = "output"
 ) {
   achillesTiming <- executeQuery(
@@ -56,7 +54,6 @@ performanceChecks <- function(
     "achilles_timing.sql",
     successMessage = "Retrieving duration of Achilles queries",
     connection = connection,
-    sqlOnly = sqlOnly,
     resultsDatabaseSchema = resultsDatabaseSchema
   )
 
@@ -65,7 +62,6 @@ performanceChecks <- function(
     "performance_benchmark.sql",
     successMessage = "Executing vocabulary query benchmark",
     connection = connection,
-    sqlOnly = sqlOnly,
     cdmDatabaseSchema = cdmDatabaseSchema
   )
 
@@ -84,7 +80,6 @@ performanceChecks <- function(
       "applied_indexes_postgres.sql",
       successMessage = "Retrieving applied indexes",
       connection = connection,
-      sqlOnly = sqlOnly,
       cdmDatabaseSchema = cdmDatabaseSchema
     )
   } else if (connection@dbms == "sql server") {
@@ -93,7 +88,6 @@ performanceChecks <- function(
       "applied_indexes_sql_server.sql",
       successMessage = "Retrieving applied indexes",
       connection = connection,
-      sqlOnly = sqlOnly,
       cdmDatabaseSchema = cdmDatabaseSchema
     )
   } else {
