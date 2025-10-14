@@ -7,7 +7,8 @@ authors <- c('-')
 
 # Optional, add separate DED results
 path_ded <- readline("Enter the path for DED file: ")
-ded_results <- readRDS(file.path(path_ded))
+ded_results <- readRDS(path_ded)
+CdmOnboarding::exportDedResults(path_ded)
 results$drugExposureDiagnostics <- ded_results
 
 # Optional, make compatible with current version
@@ -15,12 +16,14 @@ results <- CdmOnboarding::compat(results)
 # source('R/compat.R')
 # results <- compat(results)
 
-# options(error = traceback)
-# devtools::install(quick = TRUE, upgrade = 'never')
-# devtools::reload()
+if (FALSE) {
+  options(error = traceback)
+  devtools::install(quick = TRUE, upgrade = 'never')
+  devtools::reload()
+}
 CdmOnboarding::generateResultsDocument(
   results = results,
-  outputFolder = path,
+  outputFolder = '/Users/maxim/Library/CloudStorage/OneDrive-DarwinEUCoordinationCentre/Network Operations/02 DP Onboarding/Received Onboarding Documents/Year 4/UZA/202507/Results_Onboarding_3_20250610/',
   authors = authors
 )
 

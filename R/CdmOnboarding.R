@@ -29,7 +29,7 @@
 #' @details
 #' \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
 #'
-#' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param connectionDetails                An R object of type \code{Dbiconnection} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param cdmDatabaseSchema    	           Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema.
@@ -37,7 +37,6 @@
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
 #' @param scratchDatabaseSchema            Fully qualified name of database schema that we can write temporary tables to. Default is resultsDatabaseSchema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_scratch.dbo'.
-#' @param oracleTempSchema                 For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database.
 #' @param databaseId                       ID of your database, this will be used as subfolder for the results and naming of the report
 #' @param databaseName		                 String name of the database name. If blank, CDM_SOURCE table will be queried to try to obtain this.
 #' @param databaseDescription              Provide a short description of the database. If blank, CDM_SOURCE table will be queried to try to obtain this.
@@ -59,17 +58,17 @@
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
 #' \donttest{
-#' connectionDetails <- DatabaseConnector::createConnectionDetails(
-#'   dbms = Sys.getenv("DBMS"),
-#'   server = Sys.getenv("DB_SERVER"),
-#'   port = Sys.getenv("DB_PORT"),
-#'   user = Sys.getenv("DB_USER"),
-#'   password = Sys.getenv("DB_PASSWORD"),
-#'   pathToDriver = Sys.getenv("PATH_TO_DRIVER")
+#' connection <- DatabaseConnector::createDbiconnection(
+#'   dbms = "postgresql",
+#'   drv = RPostgres::Postgres(),
+#'   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+#'   host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+#'   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+#'   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 #' )
 #'
 #' results <- CdmOnboarding::cdmOnboarding(
-#'   connectionDetails = connectionDetails,
+#'   connection = connection,
 #'   cdmDatabaseSchema = Sys.getenv("CDM_SCHEMA"),
 #'   resultsDatabaseSchema = Sys.getenv("RESULTS_SCHEMA"),
 #'   databaseId = Sys.getenv("DATABASE_ID"),
@@ -110,8 +109,25 @@ cdmOnboarding <- function(
     warning("Argument `dedIngredientIds` has been deprecated, default ingredient list is used (`getDedIngredients()`).")
   }
 
+  connection <- DatabaseConnector::connect(connectionDetails)
+
+  on.exit({
+    if (exists("connection")) {
+      DatabaseConnector::disconnect(connection = connection)
+      rm(connection)
+    }
+  })
+
+  cdm <- CDMConnector::cdmFromCon(
+    con = connection,
+    cdmSchema = cdmDatabaseSchema,
+    writeSchema = scratchDatabaseSchema,
+    .softValidation = TRUE
+  )
+
   results <- .execute(
-    connectionDetails = connectionDetails,
+    connection = connection,
+    cdm = cdm,
     cdmDatabaseSchema = cdmDatabaseSchema,
     resultsDatabaseSchema = resultsDatabaseSchema,
     scratchDatabaseSchema = scratchDatabaseSchema,
@@ -183,7 +199,8 @@ cdmOnboarding <- function(
 # The main execution of CDM Onboarding analyses (for v5.x)
 # Results are returned as list, and stored as an .rds object in the provided output folder
 .execute <- function(
-  connectionDetails,
+  connection,
+  cdm,
   cdmDatabaseSchema,
   resultsDatabaseSchema,
   scratchDatabaseSchema,
@@ -243,7 +260,7 @@ cdmOnboarding <- function(
   ))
 
   # CDM Source ------------------------------------------
-  cdmSource <- .getCdmSource(connectionDetails, cdmDatabaseSchema, outputFolder)
+  cdmSource <- .getCdmSource(connection, cdmDatabaseSchema, outputFolder)
   if (is.null(cdmSource)) {
     ParallelLogger::logError(sprintf(
       "A populated cdm_source table is required for CdmOnboarding to run. Are your CDM tables in the '%s' schema?",
@@ -280,8 +297,8 @@ cdmOnboarding <- function(
   # Check whether Achilles output is available and get Achilles run info ---------------------------------------
   achillesMetadata <- NULL
   if (!sqlOnly) {
-    achillesTablesExists <- .checkAchillesTablesExist(connectionDetails, resultsDatabaseSchema)
-    achillesMetadata <- .getAchillesMetadata(connectionDetails, resultsDatabaseSchema, outputFolder)
+    achillesTablesExists <- .checkAchillesTablesExist(connection, resultsDatabaseSchema)
+    achillesMetadata <- .getAchillesMetadata(connection, resultsDatabaseSchema, outputFolder)
     if (is.null(achillesMetadata) || !achillesTablesExists) {
       ParallelLogger::logError("The output from the Achilles analyses is required.")
       ParallelLogger::logError(sprintf(
@@ -298,7 +315,7 @@ cdmOnboarding <- function(
   # Check whether results for required Achilles analyses is available. Generate soft warning.
   # At least require person, obs. period, condition and drug exposure. Other domains can be empty.
   expectedAnalysisIds <- c(105, 110, 111, 117, 403, 420, 703, 720)
-  analysisIdsAvailable <- .getAvailableAchillesAnalysisIds(connectionDetails, resultsDatabaseSchema)
+  analysisIdsAvailable <- .getAvailableAchillesAnalysisIds(connection, resultsDatabaseSchema, outputFolder)
   missingAnalysisIds <- setdiff(expectedAnalysisIds, analysisIdsAvailable)
   if (length(missingAnalysisIds) > 0) {
     ParallelLogger::logWarn(sprintf(
@@ -327,7 +344,7 @@ cdmOnboarding <- function(
   if (runDataTablesChecks) {
     ParallelLogger::logInfo("Running Data Table Checks")
     dataTablesResults <- dataTablesChecks(
-      connectionDetails = connectionDetails,
+      connection = connection,
       cdmDatabaseSchema = cdmDatabaseSchema,
       resultsDatabaseSchema = resultsDatabaseSchema,
       cdmVersion = cdmVersion,
@@ -342,7 +359,7 @@ cdmOnboarding <- function(
   if (runVocabularyChecks) {
     ParallelLogger::logInfo("Running Vocabulary Checks")
     vocabularyResults <- vocabularyChecks(
-      connectionDetails = connectionDetails,
+      connection = connection,
       cdmDatabaseSchema = cdmDatabaseSchema,
       smallCellCount = smallCellCount,
       cdmVersion = cdmVersion,
@@ -357,7 +374,8 @@ cdmOnboarding <- function(
   if (runPerformanceChecks) {
     ParallelLogger::logInfo("Running Performance checks")
     performanceResults <- performanceChecks(
-      connectionDetails = connectionDetails,
+      connection = connection,
+      cdm = cdm,
       cdmDatabaseSchema = cdmDatabaseSchema,
       resultsDatabaseSchema = resultsDatabaseSchema,
       scratchDatabaseSchema = scratchDatabaseSchema,
@@ -388,11 +406,7 @@ cdmOnboarding <- function(
   if (runDedChecks) {
     ParallelLogger::logInfo("> Running DED checks")
     drugExposureDiagnostics <- tryCatch({
-      .runDedChecks(
-        connectionDetails,
-        cdmDatabaseSchema,
-        scratchDatabaseSchema
-      )
+      .runDedChecks(cdm)
     }, error = function(e) {
       ParallelLogger::logError("DED checks failed: ", e)
       NULL
@@ -404,11 +418,7 @@ cdmOnboarding <- function(
   if (runCohortBenchmarkChecks) {
     ParallelLogger::logInfo("> Running Cohort Benchmark")
     cohortBenchmark <- tryCatch({
-      .runCohortBenchmark(
-        connectionDetails,
-        cdmDatabaseSchema,
-        scratchDatabaseSchema
-      )
+      .runCohortBenchmark(cdm)
     }, error = function(e) {
       ParallelLogger::logError("Cohort Benchmark failed: ", e)
       NULL
@@ -434,7 +444,7 @@ cdmOnboarding <- function(
     dataTablesResults = dataTablesResults,
     performanceResults = performanceResults,
     webAPIversion = webApiVersion,
-    dms = connectionDetails$dbms,
+    dms = connection@dbms,
     cdmSource = cdmSource,
     achillesMetadata = achillesMetadata,
     smallCellCount = smallCellCount,
