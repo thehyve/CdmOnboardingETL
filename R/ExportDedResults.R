@@ -56,7 +56,7 @@ exportDedResultsFromDed <- function(
 
   dedResult <- .formatDedResults(df_ded$result, dedVersion)
 
-  outputFilename <- sprintf('ded_results_%s_%s.csv', results$databaseId, format(Sys.time(), "%Y%m%d"))
+  outputFilename <- sprintf('ded_results_%s.csv', format(Sys.time(), "%Y%m%d"))
 
   dedResult %>%
     # add metadata
