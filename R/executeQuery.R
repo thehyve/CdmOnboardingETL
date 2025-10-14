@@ -75,6 +75,7 @@ executeQuery <- function(
         sql = sql,
         errorReportFile = errorReportFile
       )
+      names(result) <- toupper(names(result))  # DatabaseConnector v7 compatibility
     }
 
     # query <- SqlRender::loadSql(sql) # no need to translate again
