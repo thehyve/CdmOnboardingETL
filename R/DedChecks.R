@@ -40,16 +40,29 @@
   ))
 
   ded_start_time <- Sys.time()
-  dedResults <- DrugExposureDiagnostics::executeChecks(
-    cdm = cdm,
-    ingredients = dedIngredients$concept_id,
-    checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
-    minCellCount = 5,
-    sample = NULL,
-    earliestStartDate = "2005-01-01"
-  )
-  duration <- as.numeric(difftime(Sys.time(), ded_start_time), units = "secs")
+  # Gives error when run as part of the package, but not when run individually;
+  #   DED checks failed: Error in `dplyr::collect()`:
+  # ! Failed to collect lazy table.
+  # Caused by error:
+  # ! Failed to prepare query : ERROR:  syntax error at or near ","
+  # LINE 1: SELECT 1.*, route, concept_name AS ingredient_name
+  drugExposureDiagnostics <- tryCatch({
+    dedResults <- DrugExposureDiagnostics::executeChecks(
+      cdm = cdm,
+      ingredients = dedIngredients$concept_id,
+      checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
+      minCellCount = 5,
+      sample = NULL,
+      earliestStartDate = "2005-01-01"
+    )
+  }, error = function(e) {
+    ParallelLogger::logError("DED checks failed: ", e)
+    ParallelLogger::logError(conditionMessage(e))
+    NULL
+  })
 
+  duration <- as.numeric(difftime(Sys.time(), ded_start_time), units = "secs")
+  
   ParallelLogger::logInfo(sprintf("Executing DrugExposureDiagnostics took %.2f seconds.", duration))
 
   mappingLevel <- tryCatch({
