@@ -47,6 +47,7 @@
 #' @param runPerformanceChecks             Boolean to determine if performance checks need to be run. Default = TRUE
 #' @param runDedChecks                     Boolean to determine if DrugExposureDiagnostics checks need to be run. Default = TRUE
 #' @param runCohortBenchmarkChecks         Boolean to determine if CohortBenchMark checks need to be run. Default = TRUE
+#' @param runDataHashByTable               Boolean to determine if CdmDataHashByTable need to be run. Default = TRUE
 #' @param smallCellCount                   To avoid patient identifiability, source values with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions. (default 5)
 #' @param baseUrl                          WebAPI url, example: http://server.org:80/WebAPI
 #' @param outputFolder                     Path to store logs and SQL files
@@ -91,6 +92,7 @@ cdmOnboarding <- function(
   runWebAPIChecks = TRUE,
   runDedChecks = TRUE,
   runCohortBenchmarkChecks = TRUE,
+  runDataHashByTable = TRUE,
   smallCellCount = 5,
   baseUrl = NULL,
   outputFolder = "output",
@@ -139,6 +141,7 @@ cdmOnboarding <- function(
     runWebAPIChecks = runWebAPIChecks,
     runDedChecks = runDedChecks,
     runCohortBenchmarkChecks = runCohortBenchmarkChecks,
+    runDataHashByTable = runDataHashByTable,
     smallCellCount = smallCellCount,
     baseUrl = baseUrl,
     outputFolder = outputFolder,
@@ -210,6 +213,7 @@ cdmOnboarding <- function(
   runWebAPIChecks,
   runDedChecks,
   runCohortBenchmarkChecks,
+  runDataHashByTable,
   smallCellCount,
   baseUrl,
   outputFolder,
@@ -299,12 +303,14 @@ cdmOnboarding <- function(
     NULL
   })
 
-  cdmHashByTable <- tryCatch({
-    CDMConnector::computeDataHashByTable(cdm)
-  }, error = function(e) {
-    ParallelLogger::logWarn("Could not create dataHashByTable: ", e)
-    NULL
-  })
+  if (runDataHashByTable) {
+    cdmHashByTable <- tryCatch({
+      CDMConnector::computeDataHashByTable(cdm)
+    }, error = function(e) {
+      ParallelLogger::logWarn("Could not create dataHashByTable: ", e)
+      NULL
+    })
+  }
 
   # Check whether Achilles output is available and get Achilles run info ---------------------------------------
   achillesMetadata <- NULL

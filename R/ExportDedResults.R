@@ -23,31 +23,29 @@
 #'
 #' @param path path to the CdmOnboarding .rds results file, output is written to the same folder
 #' @export
-exportDedResults <- function(
+exportDedResultsFromPath <- function(
   path
 ) {
   results <- readRDS(path)
   outputFolder <- dirname(path)
-  .exportDedResults(results, outputFolder)
+  exportDedResults(results, outputFolder)
 }
 
 #' Export DrugExposureDiagnostics results to csv file
 #'
 #' @param results results object from \code{cdmOnboarding}
+#' @param df_ded optional dataframe with ded results, if NULL will use results$drugExposureDiagnostics
 #' @param outputFolder folder to store the results
-.exportDedResults <- function(
-  results,
-  outputFolder = getwd()
-) {
-  df_ded <- results$drugExposureDiagnostics
-  exportDedResultsFromDed(df_ded)
-}
-
 #' @export
-exportDedResultsFromDed <- function(
-  df_ded,
+exportDedResults <- function(
+  results,
+  df_ded = NULL,
   outputFolder = getwd()
 ) {
+  if (is.null(df_ded)) {
+    df_ded <- results$drugExposureDiagnostics
+  }
+
   if (nrow(df_ded$result) == 0) {
     ParallelLogger::logInfo("No DrugExposureDiagnostics results to export")
     return()
@@ -56,7 +54,7 @@ exportDedResultsFromDed <- function(
 
   dedResult <- .formatDedResults(df_ded$result, dedVersion)
 
-  outputFilename <- sprintf('ded_results_%s.csv', format(Sys.time(), "%Y%m%d"))
+  outputFilename <- sprintf('ded_results_%s_%s.csv', results$databaseId, format(Sys.time(), "%Y%m%d"))
 
   dedResult %>%
     # add metadata
