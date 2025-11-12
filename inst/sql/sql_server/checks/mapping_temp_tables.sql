@@ -104,7 +104,7 @@ group by unit_concept_id, unit_source_value, unit_source_concept_id
 select
   ISNULL(unit_source_value, '') as source_value,
   unit_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when unit_concept_id = 0 or unit_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #obs_unit
@@ -116,7 +116,7 @@ group by unit_concept_id, unit_source_value
 select
   ISNULL(value_source_value, '') as source_value,
   value_as_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when value_as_concept_id = 0 or value_as_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #meas_value
@@ -128,7 +128,7 @@ group by value_as_concept_id, value_source_value
 select
   {@cdmVersion == '5.4'} ? {ISNULL(value_source_value, '')} : {''} as source_value,
   value_as_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when value_as_concept_id = 0 or value_as_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #obs_value
@@ -152,7 +152,7 @@ group by specialty_concept_id, specialty_source_value, specialty_source_concept_
 select
   ISNULL(specimen_source_value, '') as source_value,
   specimen_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when specimen_concept_id = 0 or specimen_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #specimen
@@ -176,7 +176,7 @@ group by cause_concept_id, cause_source_value, cause_source_concept_id
 select
   ISNULL(condition_status_source_value, '') as source_value,
   condition_status_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when condition_status_concept_id = 0 or condition_status_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #cond_status
@@ -188,7 +188,7 @@ group by condition_status_concept_id, condition_status_source_value
 select
   ISNULL(route_source_value, '') as source_value,
   route_concept_id as concept_id,
-  NULL as source_concept_id,
+  CAST(NULL AS integer) as source_concept_id,
   case when route_concept_id = 0 or route_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records
 into #drug_route
