@@ -73,6 +73,7 @@ compat <- function(r, target_version = package_version('3.0')) {
   r$vocabularyResults$mappingCompleteness <- .fixDataFrameNames(r$vocabularyResults$mappingCompleteness)
   r$vocabularyResults$drugMapping <- .fixDataFrameNames(r$vocabularyResults$drugMapping)
 
+  # TODO: fix unmapped by adding source_concept_id and source_concept_name fields.
   r$vocabularyResults$unmappedDrugs <- .fixDataFrameNames(r$vocabularyResults$unmappedDrugs)
   r$vocabularyResults$unmappedConditions <- .fixDataFrameNames(r$vocabularyResults$unmappedConditions)
   r$vocabularyResults$unmappedMeasurements <- .fixDataFrameNames(r$vocabularyResults$unmappedMeasurements)
