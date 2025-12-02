@@ -23,7 +23,7 @@ if (FALSE) {
 }
 CdmOnboarding::generateResultsDocument(
   results = results,
-  outputFolder = '/Users/maxim/Library/CloudStorage/OneDrive-DarwinEUCoordinationCentre/Network Operations/02 DP Onboarding/Received Onboarding Documents/Year 4/UZA/202507/Results_Onboarding_3_20250610/',
+  outputFolder = 'output',
   authors = authors
 )
 
