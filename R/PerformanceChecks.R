@@ -129,6 +129,7 @@ performanceChecks <- function(
     achillesTiming = achillesTiming,
     performanceBenchmark = performanceBenchmark,
     cdmConnectorBenchmark = cdmConnectorBenchmark,
+    cohortBenchmark = cohortBenchmark,
     appliedIndexes = appliedIndexes,
     sys_details = sys_details,
     dmsVersion = dmsVersion,
@@ -172,9 +173,9 @@ getDARWINpackages <- function() {
   ## To update the DARWIN package list:
   # packageListUrl <- "https://raw.githubusercontent.com/mvankessel-EMC/DependencyReviewerWhitelists/main/darwin.csv" #nolint
   # packageList <- read.table(packageListUrl, sep = ",", header = TRUE) #nolint
-  # packages <- packageList[packageList$version == '*', 'package'] |> #nolint
-  #             gsub("darwin-eu-dev/", "", x = _) |> #nolint
-  #             gsub("darwin-eu/", "", x = _) |> #nolint
+  # packages <- packageList[packageList$version == '*', 'package'] %>% #nolint
+  #             gsub("darwin-eu-dev/", "", x = _) %>% #nolint
+  #             gsub("darwin-eu/", "", x = _) %>% #nolint
   #             union(c('CdmOnboarding', 'DashboardExport')) #nolint
   # dump("packages", "") #nolint
   c(

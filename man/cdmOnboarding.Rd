@@ -83,7 +83,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 }
 \examples{
 \donttest{
-connection <- DatabaseConnector::createDbiconnection(
+connection <- DatabaseConnector::createDbiConnectionDetails(
   dbms = "postgresql",
   drv = RPostgres::Postgres(),
   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),

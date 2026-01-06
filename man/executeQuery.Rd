@@ -23,11 +23,11 @@ executeQuery(
 
 \item{successMessage}{Message to log when the query is successful}
 
+\item{connection}{An active connection object to use}
+
 \item{useExecuteSql}{Boolean indicating if the query should be executed using \code{dbExecute} instead of \code{dbGetQuery}}
 
 \item{...}{Additional parameters to pass to SqlRender::loadRenderTranslateSql}
-
-\item{conn}{An active connection object to use}
 }
 \value{
 result of the query

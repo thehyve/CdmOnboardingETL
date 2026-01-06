@@ -25,7 +25,7 @@
 #' @param sqlFileName                      Name of the SQL file to execute
 #' @param sqlFolder                        (Optional) Path to the SQL file (default: 'checks')
 #' @param successMessage                   Message to log when the query is successful
-#' @param conn                             An active connection object to use
+#' @param connection                       An active connection object to use
 #' @param useExecuteSql                    Boolean indicating if the query should be executed using \code{dbExecute} instead of \code{dbGetQuery}
 #' @param ...                              Additional parameters to pass to SqlRender::loadRenderTranslateSql
 #' @returns result of the query

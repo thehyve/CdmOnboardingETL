@@ -1,7 +1,7 @@
 test_that("Drug Exposure Diagnostics Checks", {
 
   cdm <- CDMConnector::cdmFromCon(
-    con = params$connection,nection,
+    con = params$connection,
     cdmSchema = params$cdmSchema,
     writeSchema = params$writeSchema,
     .softValidation = TRUE

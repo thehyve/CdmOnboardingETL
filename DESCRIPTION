@@ -35,7 +35,6 @@ Imports:
   SqlRender,
   DrugExposureDiagnostics (>= 1.1.0),
   CDMConnector (>= 2.2.0),
-  DBI,
   benchmarkme,
   prettyunits,
   dplyr,
@@ -51,9 +50,9 @@ Imports:
   stringr,
   httr,
   utils,
-  tictoc,
-  CirceR
+  checkmate
 Suggests:
+  DBI,
   RPostgres,
   duckdb,
   devtools,

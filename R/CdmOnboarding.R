@@ -55,7 +55,7 @@
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
 #' \donttest{
-#' connection <- DatabaseConnector::createDbiconnection(
+#' connection <- DatabaseConnector::createDbiConnectionDetails(
 #'   dbms = "postgresql",
 #'   drv = RPostgres::Postgres(),
 #'   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
@@ -155,7 +155,7 @@ cdmOnboarding <- function(
 
   if (runDedChecks) {
     tryCatch({
-      .exportDedResults(
+      exportDedResults(
         results = results,
         outputFolder = outputFolder
       )
@@ -378,7 +378,7 @@ cdmOnboarding <- function(
     # PHOEBE Concept Recommended exists
     vocabularyResults$countConceptRecommended <- tryCatch({
         if('concept_recommended' %in% names(cdm)) {
-          n <- cdm$concept_recommended |> dplyr::count() |> dplyr::collect() |> dplyr::pull()()
+          n <- cdm$concept_recommended %>% dplyr::count() %>% dplyr::collect() %>% dplyr::pull()()
           ParallelLogger::logInfo("PHOEBE concept_recommended table is present in the vocabulary.")
         }
         n
@@ -458,8 +458,7 @@ cdmOnboarding <- function(
     smallCellCount = smallCellCount,
     runWithOptimizedQueries = optimize,
     dqdResults = dqdResults,
-    drugExposureDiagnostics = drugExposureDiagnostics,
-    cohortBenchmark = cohortBenchmark
+    drugExposureDiagnostics = drugExposureDiagnostics
   )
 
   tryCatch({

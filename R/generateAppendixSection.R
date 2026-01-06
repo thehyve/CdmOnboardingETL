@@ -61,13 +61,13 @@ generateAppendixSection <- function(doc, df, optimized) {
     doc <- doc %>%
       my_table_caption("MD5 Hashes of the CDM tables, as computed by CdmConnector::dataHashByTable using table names, row count, unique column and unique count.", sourceSymbol = pkg.env$sources$cdm) %>%
       my_body_add_table(
-        df$cdmHashByTable |> dplyr::mutate(
-          `Table` = table_name,
-          `#Records` = table_row_count,
-          `Unique Column` = unique_column,
-          `#Unique` = n_unique_values,
-          `Hash` = table_hash,
-          `Time Taken` = prettyunits::pretty_sec(compute_time_minutes * 60),
+        df$cdmHashByTable %>% dplyr::mutate(
+          `Table` = .data$table_name,
+          `#Records` = .data$table_row_count,
+          `Unique Column` = .data$unique_column,
+          `#Unique` = .data$n_unique_values,
+          `Hash` = .data$table_hash,
+          `Time Taken` = prettyunits::pretty_sec(.data$compute_time_minutes * 60),
           .keep = 'none'
         )
       )
