@@ -74,7 +74,7 @@
 
   data.frame(
     cohort_name = cohort_set_definition$cohort_name,
-    n_subject_bins = n_subject_bins,
+    n_subject_bins = as.character(n_subject_bins),
     duration = duration,
     error = error
   )

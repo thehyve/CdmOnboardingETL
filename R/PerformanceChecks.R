@@ -70,6 +70,14 @@ performanceChecks <- function(
     NULL
   })
 
+  # Cohort Benchmark checks -------------------------------------------------------------------------------------
+  cohortBenchmark <- tryCatch({
+    .runCohortBenchmark(cdm)
+  }, error = function(e) {
+    ParallelLogger::logError("Cohort Benchmark failed: ", e)
+    NULL
+  })
+
   # Applied indexes
   appliedIndexes <- NULL
   if (connection@dbms == "postgresql") {

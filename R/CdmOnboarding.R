@@ -45,7 +45,6 @@
 #' @param runWebAPIChecks                  Boolean to determine if WebAPI checks need to be run. Default = TRUE
 #' @param runPerformanceChecks             Boolean to determine if performance checks need to be run. Default = TRUE
 #' @param runDedChecks                     Boolean to determine if DrugExposureDiagnostics checks need to be run. Default = TRUE
-#' @param runCohortBenchmarkChecks         Boolean to determine if CohortBenchMark checks need to be run. Default = TRUE
 #' @param runDataHashByTable               Boolean to determine if CdmDataHashByTable need to be run. Default = TRUE
 #' @param smallCellCount                   To avoid patient identifiability, source values with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions. (default 5)
 #' @param baseUrl                          WebAPI url, example: http://server.org:80/WebAPI
@@ -88,7 +87,6 @@ cdmOnboarding <- function(
   runPerformanceChecks = TRUE,
   runWebAPIChecks = TRUE,
   runDedChecks = TRUE,
-  runCohortBenchmarkChecks = TRUE,
   runDataHashByTable = TRUE,
   smallCellCount = 5,
   baseUrl = NULL,
@@ -130,7 +128,6 @@ cdmOnboarding <- function(
     runPerformanceChecks = runPerformanceChecks,
     runWebAPIChecks = runWebAPIChecks,
     runDedChecks = runDedChecks,
-    runCohortBenchmarkChecks = runCohortBenchmarkChecks,
     runDataHashByTable = runDataHashByTable,
     smallCellCount = smallCellCount,
     baseUrl = baseUrl,
@@ -197,7 +194,6 @@ cdmOnboarding <- function(
   runPerformanceChecks,
   runWebAPIChecks,
   runDedChecks,
-  runCohortBenchmarkChecks,
   runDataHashByTable,
   smallCellCount,
   baseUrl,
@@ -417,18 +413,6 @@ cdmOnboarding <- function(
       .runDedChecks(cdm)
     }, error = function(e) {
       ParallelLogger::logError("DED checks failed: ", e)
-      NULL
-    })
-  }
-
-  # Cohort Benchmark checks -------------------------------------------------------------------------------------
-  cohortBenchmark <- NULL
-  if (runCohortBenchmarkChecks) {
-    ParallelLogger::logInfo("> Running Cohort Benchmark")
-    cohortBenchmark <- tryCatch({
-      .runCohortBenchmark(cdm)
-    }, error = function(e) {
-      ParallelLogger::logError("Cohort Benchmark failed: ", e)
       NULL
     })
   }

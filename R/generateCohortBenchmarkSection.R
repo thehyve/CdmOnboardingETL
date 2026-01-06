@@ -25,20 +25,44 @@
 #' @param doc officer document object to add the section to
 #' @param df Results object from \code{cdmOnboarding}
 generateCohortBenchmarkSection <- function(doc, df) {
-  df <- df %>%
+  dfPretty <- df %>%
     dplyr::mutate(
       `Cohort` = .data$cohort_name,
-      `#Persons` = .data$n_subject_bins,
-      `Error` = .data$error,
-      `Time Taken` = prettyunits::pretty_sec(.data$duration),
+      `#Persons` = ifelse(is.na(.data$error), .data$n_subject_bins, 'ERROR'),
+      `Duration (s)` = ifelse(is.na(.data$error), prettyunits::pretty_sec(.data$duration), 'ERROR'),
       .keep = "none"
     )
-
+  
   doc <- doc %>%
     my_table_caption('Results from generating cohort benchmark.',
       sourceSymbol = pkg.env$sources$cdm
     ) %>%
-    my_body_add_table(df)
+    my_body_add_table(dfPretty)
+
+  if (all(is.na(df$error))) {
+    return(doc)
+  }
+
+  doc <- doc %>%
+    officer::body_add_break() %>%
+    officer::body_add_par("Cohort Generation Errors", style = pkg.env$styles$highlight)
+  
+  # For each error add a note
+  for (i in seq_len(nrow(df))) {
+    if (is.na(df$error[i])) {
+      next
+    }
+    doc <- doc %>%
+      officer::body_add_par(sprintf(
+          "Cohort '%s' could not be generated due to an error:",
+          df$cohort_name[i]          
+      )) %>%
+      officer::body_add_par(
+        df$error[i],
+        style = pkg.env$styles$footnote
+      ) %>%
+      officer::body_add_par("")
+  }
 
   return(doc)
 }
