@@ -30,11 +30,11 @@ RoxygenNote: 7.3.0
 Depends: 
   R (>= 4.2.0)
 Imports:
-  DatabaseConnector (>= 5.0.2),
+  DatabaseConnector (>= 7.0.0),
   ParallelLogger,
   SqlRender,
   DrugExposureDiagnostics (>= 1.1.0),
-  CDMConnector (>= 2.0.0),
+  CDMConnector (>= 2.2.0),
   DBI,
   benchmarkme,
   prettyunits,

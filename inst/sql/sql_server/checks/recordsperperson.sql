@@ -17,7 +17,7 @@
     round(1.0 * ar.count_value / denom.count_value, 5) AS y_record_count
 FROM @resultsDatabaseSchema.achilles_results AS ar
 INNER JOIN @resultsDatabaseSchema.achilles_results AS denom
-  ON ar.stratum_1 = denom.stratum_1 AND denom.analysis_id = 117
+  ON ar.stratum_1 = denom.stratum_1 AND denom.analysis_id = 110
 WHERE ar.analysis_id IN (111, 220, 420, 502, 620, 720, 820, 920, 1020, 1820, 2120)
 ORDER BY series_Name, CAST(CASE WHEN isNumeric(ar.stratum_1) = 1 THEN ar.stratum_1 ELSE null END AS INT)
 ;

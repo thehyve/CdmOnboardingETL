@@ -2,8 +2,8 @@ test_that("WebAPI Checks", {
   skip(message = "requires network connection")
   results <- CdmOnboarding::cdmOnboarding(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    cdmSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     outputFolder = params$outputFolder,
     databaseId = params$databaseId,
     dqdJsonPath = NULL,

@@ -4,15 +4,11 @@
 #' \code{compat} provides compatibility by converting results from previous versions of CdmOnboarding to the latest version.
 #'
 #' @param r A list of results from CdmOnboarding.
-#' @param target_version The version to convert the results to, only v3 supported.
 #' @return A list of results from CdmOnboarding, forwards compatible with v3.
 #' @export
 #' @importFrom stringr str_replace str_replace_all str_to_title
-compat <- function(r, target_version = package_version('3.0')) {
-  if (target_version$major != 3) {
-    print("Only target version v3 is supported")
-  }
-  print(sprintf("Converting results from version %s to %s", .get_cdmonboarding_version(r), target_version))
+compat <- function(r) {
+  print(sprintf("Converting results from version %s to %s", .get_cdmonboarding_version(r), packageVersion("CdmOnboarding")))
 
   # General
   r$cdmOnboardingVersion <- dplyr::coalesce(r$cdmOnboardingVersion, .get_cdmonboarding_version(r))
@@ -73,6 +69,7 @@ compat <- function(r, target_version = package_version('3.0')) {
   r$vocabularyResults$mappingCompleteness <- .fixDataFrameNames(r$vocabularyResults$mappingCompleteness)
   r$vocabularyResults$drugMapping <- .fixDataFrameNames(r$vocabularyResults$drugMapping)
 
+  # TODO: fix unmapped by adding source_concept_id and source_concept_name fields.
   r$vocabularyResults$unmappedDrugs <- .fixDataFrameNames(r$vocabularyResults$unmappedDrugs)
   r$vocabularyResults$unmappedConditions <- .fixDataFrameNames(r$vocabularyResults$unmappedConditions)
   r$vocabularyResults$unmappedMeasurements <- .fixDataFrameNames(r$vocabularyResults$unmappedMeasurements)
@@ -138,7 +135,6 @@ compat <- function(r, target_version = package_version('3.0')) {
   }
 
   # Performance
-  print('holla')
   if (is.null(r$performanceResults$packinfo)) {
     r$performanceResults$sys_details <- r$sys_details
     r$performanceResults$dmsVersion <- r$dmsVersion
@@ -152,7 +148,7 @@ compat <- function(r, target_version = package_version('3.0')) {
     r$hadesPackageVersions <- NULL
   }
   if (is.null(r$performanceResults$darwinPackageVersions)) {
-    print("No darwinPackageVersio ns found, creating empty data frame")
+    print("No darwinPackageVersions found, creating empty dataframe")
     r$performanceResults$darwinPackageVersions <- data.frame(
       Package = character(0),
       Version = character(0),

@@ -26,7 +26,6 @@
 #' @param sqlFolder                        (Optional) Path to the SQL file (default: 'checks')
 #' @param successMessage                   Message to log when the query is successful
 #' @param conn                             An active connection object to use
-#' @param sqlOnly                          Boolean indicating if only the SQL should be written to file
 #' @param useExecuteSql                    Boolean indicating if the query should be executed using \code{dbExecute} instead of \code{dbGetQuery}
 #' @param ...                              Additional parameters to pass to SqlRender::loadRenderTranslateSql
 #' @returns result of the query
@@ -36,7 +35,6 @@ executeQuery <- function(
   sqlFolder = "checks",
   successMessage = NULL,
   connection = NULL,
-  sqlOnly = FALSE,
   useExecuteSql = FALSE,
   ...
 ) {
@@ -53,10 +51,6 @@ executeQuery <- function(
 
   duration <- -1
   result <- NULL
-  if (sqlOnly) {
-    SqlRender::writeSql(sql = sql, targetFile = file.path(outputFolder, sqlFileName))
-    return(list(result = result, duration = duration))
-  }
 
   errorReportFile <- file.path(outputFolder, sprintf("%sErr.txt", tools::file_path_sans_ext(sqlFileName)))
   tryCatch({
@@ -75,6 +69,7 @@ executeQuery <- function(
         sql = sql,
         errorReportFile = errorReportFile
       )
+      names(result) <- toupper(names(result))  # DatabaseConnector v7 compatibility
     }
 
     # query <- SqlRender::loadSql(sql) # no need to translate again

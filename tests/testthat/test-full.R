@@ -2,8 +2,8 @@ test_that("Full CdmOnboarding executable", {
   skip(message = "covered by individual tests")
   results <- CdmOnboarding::cdmOnboarding(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    cdmSchema = params$cdmSchema,
+    resultsSchema = params$resultsSchema,
     databaseId = params$databaseId,
     outputFolder = params$outputFolder,
     baseUrl = params$baseUrl,

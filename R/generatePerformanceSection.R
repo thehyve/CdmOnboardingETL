@@ -81,10 +81,10 @@ generatePerformanceSection <- function(doc, results) {
 
   if (!is.null(df$cdmConnectorBenchmark$result)) {
     df$cdmConnectorBenchmark$result <- df$cdmConnectorBenchmark$result %>%
-      select(
+      mutate(
         `Task` = .data$task,
-        `Time taken (s)` = .data$time_taken_secs,
-        `Time taken (min)` = .data$time_taken_mins
+        `Time taken` = prettyunits::pretty_sec(.data$time_taken_secs),
+        .keep = "none"
       )
     doc <- doc %>%
       my_table_caption("CDMConnector benchmark of the OMOP CDM tables.", sourceSymbol = pkg.env$sources$cdm) %>%

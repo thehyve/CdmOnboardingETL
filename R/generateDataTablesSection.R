@@ -72,7 +72,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   recordsPerPersonPlot <- .recordsCountPlot(as.data.frame(df$recordsPerPerson$result), log_y_axis = TRUE)
   doc <- doc %>%
     officer::body_add_gg(recordsPerPersonPlot, height = 4) %>%
-    my_figure_caption("Number of records per person over time per OMOP data domain.", sourceSymbol = pkg.env$sources$achilles)
+    my_figure_caption("Number of records per person over time per OMOP data domain. Note: using analysis 110 as denominator as of v4.0 (instead of 117).", sourceSymbol = pkg.env$sources$achilles)
 
   # Mortality
   if (!is.null(df$totalRecords$result)) {
@@ -219,7 +219,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   }
   doc <- doc %>%
     officer::body_add_par("Date Range", style = pkg.env$styles$heading2) %>%
-    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$achilles) %>% #nolint
+    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$cdm) %>% #nolint
     my_body_add_table_runtime(
       df$dateRangeByTypeConcept,
       alignment = c('l', 'l', rep('r', ncol(df$dateRangeByTypeConcept$result) - 2))

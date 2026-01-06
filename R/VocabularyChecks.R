@@ -35,7 +35,6 @@
 #' @param cdmVersion                       Define the OMOP CDM version used: currently supports v5 and above.
 #'                                         Use major release number or minor number only (e.g. 5, 5.3)
 #' @param smallCellCount                   To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.
-#' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param outputFolder                     Path to store logs and SQL files
 #' @param optimize                         Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
@@ -44,103 +43,102 @@ vocabularyChecks <- function(connection,
                              cdmDatabaseSchema,
                              cdmVersion,
                              smallCellCount = 5,
-                             sqlOnly = FALSE,
                              outputFolder = "output",
                              optimize = FALSE) {
   if (optimize && connection@dbms == "postgresql") {
     vocabularyCounts <- executeQuery(outputFolder, "vocabulary_tables_count_postgres.sql", successMessage = "Count on vocabulary tables (postgres estimate) query executed successfully",
-                                     connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                     connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
   } else if (optimize && connection@dbms == "sql server") {
     vocabularyCounts <- executeQuery(outputFolder, "vocabulary_tables_count_sql_server.sql", successMessage = "Count on vocabulary tables (sql server estimate) query executed successfully",
-                                     connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                     connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
   } else {
     vocabularyCounts <- executeQuery(outputFolder, "vocabulary_tables_count.sql", successMessage = "Count on vocabulary tables query executed successfully",
-                                     connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                     connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
   }
 
   conceptCounts <- executeQuery(outputFolder, "concept_counts_by_vocabulary.sql", successMessage = "Concept counts by vocabulary query executed successfully",
-                                connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
   sourceConceptFrequency <- executeQuery(outputFolder, "source_to_concept_map_frequency.sql", successMessage = "Source to concept map breakdown query executed successfully",
-                                         connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                         connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
   sourceConceptMap <- executeQuery(outputFolder, "get_source_to_concept_map.sql", successMessage = "Source to concept map query executed successfully",
-                                   connection = connection, sqlOnly = sqlOnly, cdmDatabaseSchema = cdmDatabaseSchema)
+                                   connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
 
   # Execute in same connection
   # Note: if one query in the tryCatch fails, then all fail ("current transaction is aborted")
   ParallelLogger::logInfo("Starting vocab mapping queries. Preprocessing domains...")
-  mappingTempTableCreation <- executeQuery(outputFolder, "mapping_temp_tables.sql", successMessage = "Mapping Temp tables query executed successfully", sqlOnly = sqlOnly,
+  mappingTempTableCreation <- executeQuery(outputFolder, "mapping_temp_tables.sql", successMessage = "Mapping Temp tables query executed successfully",
                                            connection = connection, useExecuteSql = TRUE, cdmDatabaseSchema = cdmDatabaseSchema, cdmVersion = cdmVersion, optimize = optimize)
-  mappingCompleteness <- executeQuery(outputFolder, "mapping_completeness.sql", successMessage = "Mapping Completeness query executed successfully", sqlOnly = sqlOnly,
+  mappingCompleteness <- executeQuery(outputFolder, "mapping_completeness.sql", successMessage = "Mapping Completeness query executed successfully",
                                       connection = connection, cdmVersion = cdmVersion)
 
-  drugMapping  <- executeQuery(outputFolder, "mapping_levels_drugs.sql", successMessage = "Drug Level Mapping query executed successfully", sqlOnly = sqlOnly,
+  drugMapping  <- executeQuery(outputFolder, "mapping_levels_drugs.sql", successMessage = "Drug Level Mapping query executed successfully",
                                connection = connection, cdmDatabaseSchema = cdmDatabaseSchema)
 
-  unmappedDrugs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped drugs query executed successfully", sqlOnly = sqlOnly,
-                                connection = connection, cdmDomain = 'drug', smallCellCount = smallCellCount)
-  unmappedConditions <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped conditions query executed successfully", sqlOnly = sqlOnly,
-                                     connection = connection, cdmDomain = 'condition', smallCellCount = smallCellCount)
-  unmappedMeasurements <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped measurements query executed successfully", sqlOnly = sqlOnly,
-                                       connection = connection, cdmDomain = 'meas', smallCellCount = smallCellCount)
-  unmappedObservations <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped observations query executed successfully", sqlOnly = sqlOnly,
-                                       connection = connection, cdmDomain = 'obs', smallCellCount = smallCellCount)
-  unmappedProcedures <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped procedures query executed successfully", sqlOnly = sqlOnly,
-                                     connection = connection, cdmDomain = 'procedure', smallCellCount = smallCellCount)
-  unmappedDevices <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped devices query executed successfully", sqlOnly = sqlOnly,
-                                  connection = connection, cdmDomain = 'device', smallCellCount = smallCellCount)
-  unmappedVisits <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped visits query executed successfully", sqlOnly = sqlOnly,
-                                 connection = connection, cdmDomain = 'visit', smallCellCount = smallCellCount)
-  unmappedVisitDetails <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped visit details query executed successfully", sqlOnly = sqlOnly,
-                                       connection = connection, cdmDomain = 'visit_detail', smallCellCount = smallCellCount)
-  unmappedUnitsMeas <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped meas units query executed successfully", sqlOnly = sqlOnly,
-                                    connection = connection, cdmDomain = 'meas_unit', smallCellCount = smallCellCount)
-  unmappedUnitsObs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped obs units query executed successfully", sqlOnly = sqlOnly,
-                                   connection = connection, cdmDomain = 'obs_unit', smallCellCount = smallCellCount)
-  unmappedValuesMeas <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped meas values query executed successfully", sqlOnly = sqlOnly,
-                                     connection = connection, cdmDomain = 'meas_value', smallCellCount = smallCellCount)
-  unmappedValuesObs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped obs values query executed successfully", sqlOnly = sqlOnly,
-                                    connection = connection, cdmDomain = 'obs_value', smallCellCount = smallCellCount)
-  unmappedDrugRoute <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped drug route query executed successfully", sqlOnly = sqlOnly,
-                                    connection = connection, cdmDomain = 'drug_route', smallCellCount = smallCellCount)
-  unmappedSpecialty <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped specialty query executed successfully", sqlOnly = sqlOnly,
-                                    connection = connection, cdmDomain = 'specialty', smallCellCount = smallCellCount)
+  unmappedDrugs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped drugs query executed successfully",
+                                connection = connection, cdmDomain = 'drug', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedConditions <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped conditions query executed successfully",
+                                     connection = connection, cdmDomain = 'condition', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedMeasurements <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped measurements query executed successfully",
+                                       connection = connection, cdmDomain = 'meas', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedObservations <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped observations query executed successfully",
+                                       connection = connection, cdmDomain = 'obs', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedProcedures <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped procedures query executed successfully",
+                                     connection = connection, cdmDomain = 'procedure', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedDevices <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped devices query executed successfully",
+                                  connection = connection, cdmDomain = 'device', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedVisits <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped visits query executed successfully",
+                                 connection = connection, cdmDomain = 'visit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedVisitDetails <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped visit details query executed successfully",
+                                       connection = connection, cdmDomain = 'visit_detail', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedUnitsMeas <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped meas units query executed successfully",
+                                    connection = connection, cdmDomain = 'meas_unit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedUnitsObs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped obs units query executed successfully",
+                                   connection = connection, cdmDomain = 'obs_unit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedValuesMeas <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped meas values query executed successfully",
+                                     connection = connection, cdmDomain = 'meas_value', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedValuesObs <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped obs values query executed successfully",
+                                    connection = connection, cdmDomain = 'obs_value', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedDrugRoute <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped drug route query executed successfully",
+                                    connection = connection, cdmDomain = 'drug_route', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
+  unmappedSpecialty <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped specialty query executed successfully",
+                                    connection = connection, cdmDomain = 'specialty', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
   if (cdmVersion >= 5.4) {
-    unmappedEpisodes <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped episode query executed successfully", sqlOnly = sqlOnly,
-                                     connection = connection, cdmDomain = 'eps', smallCellCount = smallCellCount)
+    unmappedEpisodes <- executeQuery(outputFolder, "unmapped_concepts_templated.sql", successMessage = "Unmapped episode query executed successfully",
+                                     connection = connection, cdmDomain = 'eps', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
   } else {
     unmappedEpisodes <- NULL
   }
 
-  mappedDrugs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped drugs query executed successfully", sqlOnly = sqlOnly,
+  mappedDrugs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped drugs query executed successfully",
                               connection = connection, cdmDomain = 'drug', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedConditions <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped conditions query executed successfully", sqlOnly = sqlOnly,
+  mappedConditions <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped conditions query executed successfully",
                                    connection = connection, cdmDomain = 'condition', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedMeasurements <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped measurements query executed successfully", sqlOnly = sqlOnly,
+  mappedMeasurements <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped measurements query executed successfully",
                                      connection = connection, cdmDomain = 'meas', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedObservations <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped observations query executed successfully", sqlOnly = sqlOnly,
+  mappedObservations <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped observations query executed successfully",
                                      connection = connection, cdmDomain = 'obs', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedProcedures <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped procedures query executed successfully", sqlOnly = sqlOnly,
+  mappedProcedures <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped procedures query executed successfully",
                                    connection = connection, cdmDomain = 'procedure', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedDevices <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped devices query executed successfully", sqlOnly = sqlOnly,
+  mappedDevices <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped devices query executed successfully",
                                 connection = connection, cdmDomain = 'device', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedVisits <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped visits query executed successfully", sqlOnly = sqlOnly,
+  mappedVisits <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped visits query executed successfully",
                                connection = connection, cdmDomain = 'visit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedVisitDetails <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped visit details query executed successfully", sqlOnly = sqlOnly,
+  mappedVisitDetails <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped visit details query executed successfully",
                                      connection = connection, cdmDomain = 'visit_detail', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedUnitsMeas <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped meas units query executed successfully", sqlOnly = sqlOnly,
+  mappedUnitsMeas <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped meas units query executed successfully",
                                   connection = connection, cdmDomain = 'meas_unit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedUnitsObs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped obs units query executed successfully", sqlOnly = sqlOnly,
+  mappedUnitsObs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped obs units query executed successfully",
                                  connection = connection, cdmDomain = 'obs_unit', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedValuesMeas <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped meas values query executed successfully", sqlOnly = sqlOnly,
+  mappedValuesMeas <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped meas values query executed successfully",
                                    connection = connection, cdmDomain = 'meas_value', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedValuesObs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped obs values query executed successfully", sqlOnly = sqlOnly,
+  mappedValuesObs <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped obs values query executed successfully",
                                   connection = connection, cdmDomain = 'obs_value', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedDrugRoute <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped drug routes query executed successfully", sqlOnly = sqlOnly,
+  mappedDrugRoute <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped drug routes query executed successfully",
                                   connection = connection, cdmDomain = 'drug_route', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
-  mappedSpecialty <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped specialty query executed successfully", sqlOnly = sqlOnly,
+  mappedSpecialty <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped specialty query executed successfully",
                                   connection = connection, cdmDomain = 'specialty', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
   if (cdmVersion >= 5.4) {
-    mappedEpisodes <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped episodes query executed successfully", sqlOnly = sqlOnly,
+    mappedEpisodes <- executeQuery(outputFolder, "mapped_concepts_templated.sql", successMessage = "Mapped episodes query executed successfully",
                                    connection = connection, cdmDomain = 'eps', cdmDatabaseSchema = cdmDatabaseSchema, smallCellCount = smallCellCount)
   } else {
     mappedEpisodes <- NULL

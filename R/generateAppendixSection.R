@@ -29,11 +29,18 @@ generateAppendixSection <- function(doc, df, optimized) {
   # vocabulary table counts
   if (!is.null(df$vocabularyCounts$result)) {
     df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
-      arrange(desc(.data$COUNT))
+      arrange(desc(.data$COUNT)) %>%
+      dplyr::bind_rows(
+        data.frame(
+          TABLENAME = "concept_recommended",
+          COUNT = df$countConceptRecommended
+        )
+      )
+
     doc <- doc %>%
-        officer::body_add_par("Vocabulary table counts", style = pkg.env$styles$heading2) %>%
-        my_table_caption("The number of records in all vocabulary tables.", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>% #nolint
-        my_body_add_table_runtime(df$vocabularyCounts)
+      officer::body_add_par("Vocabulary table counts", style = pkg.env$styles$heading2) %>%
+      my_table_caption("The number of records in all vocabulary tables.", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>% #nolint
+      my_body_add_table_runtime(df$vocabularyCounts)
   }
 
   # vocabularies table
@@ -46,5 +53,25 @@ generateAppendixSection <- function(doc, df, optimized) {
       my_body_add_table_runtime(df$conceptCounts)
   }
 
+  #Hashes
+  doc <- doc %>%
+    officer::body_add_par("Table hashes", style = pkg.env$styles$heading2)
+
+  if (!is.null(df$cdmHashByTable)) {
+    doc <- doc %>%
+      my_table_caption("MD5 Hashes of the CDM tables, as computed by CdmConnector::dataHashByTable using table names, row count, unique column and unique count.", sourceSymbol = pkg.env$sources$cdm) %>%
+      my_body_add_table(
+        df$cdmHashByTable |> dplyr::mutate(
+          `Table` = table_name,
+          `#Records` = table_row_count,
+          `Unique Column` = unique_column,
+          `#Unique` = n_unique_values,
+          `Hash` = table_hash,
+          `Time Taken` = prettyunits::pretty_sec(compute_time_minutes * 60),
+          .keep = 'none'
+        )
+      )
+  }
+
   return(doc)
-}
+  }

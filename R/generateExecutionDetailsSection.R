@@ -35,7 +35,8 @@ generateExecutionDetails <- function(doc, df) {
     c("Execution date", df$executionDate),
     c("Execution duration", prettyunits::pretty_sec(df$executionDuration)),
     c("Achilles version", df$achillesMetadata$ACHILLES_VERSION),
-    c("Achilles execution date", df$achillesMetadata$ACHILLES_EXECUTION_DATE)
+    c("Achilles execution date", df$achillesMetadata$ACHILLES_EXECUTION_DATE),
+    c("Snapshot", df$cdmSnapshot$cdm_data_hash)
   ))
   names(metadata) <- c('Detail', 'Value')
 
