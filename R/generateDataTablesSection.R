@@ -216,7 +216,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   }
   doc <- doc %>%
     officer::body_add_par("Date Range", style = pkg.env$styles$heading2) %>%
-    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$achilles) %>% #nolint
+    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$cdm) %>% #nolint
     my_body_add_table_runtime(
       df$dateRangeByTypeConcept,
       alignment = c('l', 'l', rep('r', ncol(df$dateRangeByTypeConcept$result) - 2))
