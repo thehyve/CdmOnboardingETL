@@ -66,7 +66,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   recordsPerPersonPlot <- .recordsCountPlot(as.data.frame(df$recordsPerPerson$result), log_y_axis = TRUE)
   doc <- doc %>%
     officer::body_add_gg(recordsPerPersonPlot, height = 4) %>%
-    my_figure_caption("Number of records per person over time per OMOP data domain.", sourceSymbol = pkg.env$sources$achilles)
+    my_figure_caption("Number of records per person over time per OMOP data domain. Note: using analysis 110 as denominator as of v4.0 (instead of 117).", sourceSymbol = pkg.env$sources$achilles)
 
   # Mortality
   overallMortality <- round(deathCount / personCount * 100, 2)

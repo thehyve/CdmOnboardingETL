@@ -326,7 +326,7 @@ cdmOnboarding <- function(
 
   # Check whether results for required Achilles analyses is available. Generate soft warning.
   # At least require person, obs. period, condition and drug exposure. Other domains can be empty.
-  expectedAnalysisIds <- c(105, 110, 111, 117, 403, 420, 703, 720)
+  expectedAnalysisIds <- c(105, 110, 111, 403, 420, 703, 720)
   analysisIdsAvailable <- .getAvailableAchillesAnalysisIds(connection, resultsSchema, outputFolder)
   missingAnalysisIds <- setdiff(expectedAnalysisIds, analysisIdsAvailable)
   if (length(missingAnalysisIds) > 0) {
