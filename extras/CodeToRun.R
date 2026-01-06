@@ -33,8 +33,8 @@ connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
 )
 
 # Details for connecting to the CDM
-cdmDatabaseSchema <- Sys.getenv("CDM_SCHEMA")
-resultsDatabaseSchema <- Sys.getenv("RESULTS_SCHEMA")
+cdmSchema <- Sys.getenv("CDM_SCHEMA")
+resultsSchema <- Sys.getenv("RESULTS_SCHEMA")
 
 # Details specific to the database:
 databaseId <- Sys.getenv("DATABASE_ID")
@@ -55,8 +55,8 @@ verboseMode <- TRUE
 # *******************************************************
 results <- CdmOnboarding::cdmOnboarding(
   connectionDetails = connectionDetails,
-  cdmDatabaseSchema = cdmDatabaseSchema,
-  resultsDatabaseSchema = resultsDatabaseSchema,
+  cdmSchema = cdmSchema,
+  resultsSchema = resultsSchema,
   databaseId = databaseId,
   authors = authors,
   smallCellCount = smallCellCount,

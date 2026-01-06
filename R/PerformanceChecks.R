@@ -35,7 +35,6 @@
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
-#' @param scratchDatabaseSchema            Fully qualified name of database schema where temporary tables can be written.
 #' @param cdmVersion                       Version of the CDM to check against. Default is "5.4".
 #' @param outputFolder                     Path to store logs and SQL files
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
@@ -45,7 +44,6 @@ performanceChecks <- function(
   cdm,
   cdmDatabaseSchema,
   resultsDatabaseSchema,
-  scratchDatabaseSchema,
   cdmVersion = "5.4",
   outputFolder = "output"
 ) {

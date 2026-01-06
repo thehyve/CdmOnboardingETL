@@ -29,13 +29,12 @@
 #' @details
 #' \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
 #'
-#' @param connectionDetails                An R object of type \code{Dbiconnection} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema    	           Fully qualified name of database schema that contains OMOP CDM schema.
+#' @param connectionDetails                An R object of type \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param cdmSchema    	                   Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
-#' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema.
-#'                                         The Achilles results are read from this table.
+#' @param resultsSchema		                 Fully qualified name of database schema that holds the the Achilles results.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
-#' @param scratchDatabaseSchema            Fully qualified name of database schema that we can write temporary tables to. Default is resultsDatabaseSchema.
+#' @param writeSchema                      Fully qualified name of database schema that we can write temporary tables to. Default is resultsDatabaseSchema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_scratch.dbo'.
 #' @param databaseId                       ID of your database, this will be used as subfolder for the results and naming of the report
 #' @param databaseName		                 String name of the database name. If blank, CDM_SOURCE table will be queried to try to obtain this.
@@ -54,7 +53,6 @@
 #' @param verboseMode                      Boolean to determine if the console will show all execution steps. Default = TRUE
 #' @param dqdJsonPath                      Path to the json of the DQD
 #' @param optimize                         Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE
-#' @param dedIngredientIds                 DEPRECATED, default ingredients are always used (`getDedIngredients()`).
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
 #' \donttest{
@@ -69,8 +67,8 @@
 #'
 #' results <- CdmOnboarding::cdmOnboarding(
 #'   connection = connection,
-#'   cdmDatabaseSchema = Sys.getenv("CDM_SCHEMA"),
-#'   resultsDatabaseSchema = Sys.getenv("RESULTS_SCHEMA"),
+#'   cdmSchema = Sys.getenv("CDM_SCHEMA"),
+#'   resultsSchema = Sys.getenv("RESULTS_SCHEMA"),
 #'   databaseId = Sys.getenv("DATABASE_ID"),
 #'   authors = authors,
 #'   baseUrl = Sys.getenv("WEBAPI_BASEURL")
@@ -78,10 +76,9 @@
 #' @export
 cdmOnboarding <- function(
   connectionDetails,
-  cdmDatabaseSchema,
-  resultsDatabaseSchema,
-  scratchDatabaseSchema = resultsDatabaseSchema,
-  oracleTempSchema = resultsDatabaseSchema,
+  cdmSchema,
+  resultsSchema,
+  writeSchema = resultsSchema,
   databaseId,
   databaseName,
   databaseDescription,
@@ -98,20 +95,11 @@ cdmOnboarding <- function(
   outputFolder = "output",
   verboseMode = TRUE,
   dqdJsonPath = NULL,
-  optimize = FALSE,
-  dedIngredientIds = NULL
+  optimize = FALSE
 ) {
-  if (missing(databaseId)) {
-    stop("Argument databaseId is missing")
-  }
 
-  if (!is.null(dedIngredientIds)) {
-    warning("Argument `dedIngredientIds` has been deprecated, default ingredient list is used (`getDedIngredients()`).")
-  }
-  # TODO: remove dedIngredientIds
-
-  # Check required arguments
-  # ConnectionDetails should be of type Dbiconnection
+  checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
+  checkmate::assertCharacter(databaseId, len = 1, any.missing = FALSE)
 
   connection <- DatabaseConnector::connect(connectionDetails)
 
@@ -124,18 +112,17 @@ cdmOnboarding <- function(
 
   cdm <- CDMConnector::cdmFromCon(
     con = connection,
-    cdmSchema = cdmDatabaseSchema,
-    writeSchema = scratchDatabaseSchema,
+    cdmSchema = cdmSchema,
+    writeSchema = writeSchema,
     .softValidation = TRUE
   )
 
   results <- .execute(
     connection = connection,
     cdm = cdm,
-    cdmDatabaseSchema = cdmDatabaseSchema,
-    resultsDatabaseSchema = resultsDatabaseSchema,
-    scratchDatabaseSchema = scratchDatabaseSchema,
-    oracleTempSchema = oracleTempSchema,
+    cdmSchema = cdmSchema,
+    resultsSchema = resultsSchema,
+    writeSchema = writeSchema,
     databaseId = databaseId,
     databaseName = databaseName,
     databaseDescription = databaseDescription,
@@ -204,10 +191,9 @@ cdmOnboarding <- function(
 .execute <- function(
   connection,
   cdm,
-  cdmDatabaseSchema,
-  resultsDatabaseSchema,
-  scratchDatabaseSchema,
-  oracleTempSchema,
+  cdmSchema,
+  resultsSchema,
+  writeSchema,
   databaseId,
   databaseName,
   databaseDescription,
@@ -265,11 +251,11 @@ cdmOnboarding <- function(
   ))
 
   # CDM Source ------------------------------------------
-  cdmSource <- .getCdmSource(connection, cdmDatabaseSchema, outputFolder)
+  cdmSource <- .getCdmSource(connection, cdmSchema, outputFolder)
   if (is.null(cdmSource)) {
     ParallelLogger::logError(sprintf(
       "A populated cdm_source table is required for CdmOnboarding to run. Are your CDM tables in the '%s' schema?",
-      cdmDatabaseSchema
+      cdmSchema
     ))
     return(NULL)
   }
@@ -319,13 +305,13 @@ cdmOnboarding <- function(
 
   # Check whether Achilles output is available and get Achilles run info ---------------------------------------
   achillesMetadata <- NULL
-  achillesTablesExists <- .checkAchillesTablesExist(connection, resultsDatabaseSchema)
-  achillesMetadata <- .getAchillesMetadata(connection, resultsDatabaseSchema, outputFolder)
+  achillesTablesExists <- .checkAchillesTablesExist(connection, resultsSchema)
+  achillesMetadata <- .getAchillesMetadata(connection, resultsSchema, outputFolder)
   if (is.null(achillesMetadata) || !achillesTablesExists) {
     ParallelLogger::logError("The output from the Achilles analyses is required.")
     ParallelLogger::logError(sprintf(
       "Please run Achilles first and make sure the resulting Achilles tables are in the given results schema ('%s').",
-      resultsDatabaseSchema
+      resultsSchema
     ))
     return(NULL)
   }
@@ -337,7 +323,7 @@ cdmOnboarding <- function(
   # Check whether results for required Achilles analyses is available. Generate soft warning.
   # At least require person, obs. period, condition and drug exposure. Other domains can be empty.
   expectedAnalysisIds <- c(105, 110, 111, 117, 403, 420, 703, 720)
-  analysisIdsAvailable <- .getAvailableAchillesAnalysisIds(connection, resultsDatabaseSchema, outputFolder)
+  analysisIdsAvailable <- .getAvailableAchillesAnalysisIds(connection, resultsSchema, outputFolder)
   missingAnalysisIds <- setdiff(expectedAnalysisIds, analysisIdsAvailable)
   if (length(missingAnalysisIds) > 0) {
     ParallelLogger::logWarn(sprintf(
@@ -367,8 +353,8 @@ cdmOnboarding <- function(
     ParallelLogger::logInfo("Running Data Table Checks")
     dataTablesResults <- dataTablesChecks(
       connection = connection,
-      cdmDatabaseSchema = cdmDatabaseSchema,
-      resultsDatabaseSchema = resultsDatabaseSchema,
+      cdmDatabaseSchema = cdmSchema,
+      resultsDatabaseSchema = resultsSchema,
       cdmVersion = cdmVersion,
       outputFolder = outputFolder,
       optimize = optimize
@@ -381,7 +367,7 @@ cdmOnboarding <- function(
     ParallelLogger::logInfo("Running Vocabulary Checks")
     vocabularyResults <- vocabularyChecks(
       connection = connection,
-      cdmDatabaseSchema = cdmDatabaseSchema,
+      cdmDatabaseSchema = cdmSchema,
       smallCellCount = smallCellCount,
       cdmVersion = cdmVersion,
       outputFolder = outputFolder,
@@ -396,9 +382,8 @@ cdmOnboarding <- function(
     performanceResults <- performanceChecks(
       connection = connection,
       cdm = cdm,
-      cdmDatabaseSchema = cdmDatabaseSchema,
-      resultsDatabaseSchema = resultsDatabaseSchema,
-      scratchDatabaseSchema = scratchDatabaseSchema,
+      cdmDatabaseSchema = cdmSchema,
+      resultsDatabaseSchema = resultsSchema,
       cdmVersion = cdmVersion,
       outputFolder = outputFolder
     )
