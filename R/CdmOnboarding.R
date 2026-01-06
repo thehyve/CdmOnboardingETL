@@ -373,6 +373,19 @@ cdmOnboarding <- function(
       outputFolder = outputFolder,
       optimize = optimize
     )
+    
+    # PHOEBE Concept Recommended exists
+    vocabularyResults$countConceptRecommended <- tryCatch({
+        if('concept_recommended' %in% names(cdm)) {
+          n <- cdm$concept_recommended |> dplyr::count() |> dplyr::collect() |> dplyr::pull()()
+          ParallelLogger::logInfo("PHOEBE concept_recommended table is present in the vocabulary.")
+        }
+        n
+      }, error = function(e) {
+        ParallelLogger::logWarn("Could not retrieve count of concept_recommended: ", e)
+        NA
+      }
+    )
   }
 
   # performance checks --------------------------------------------------------------------------------------------
