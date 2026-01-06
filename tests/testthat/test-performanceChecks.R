@@ -1,9 +1,15 @@
 test_that("Performance Checks", {
+  cdm <- CDMConnector::cdmFromCon(
+    con = params$connection,,
+    cdmSchema = params$cdmSchema,
+    writeSchema = params$writeSchema,
+    .softValidation = TRUE
+  )
   performanceResults <- CdmOnboarding::performanceChecks(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
-    scratchDatabaseSchema = params$scratchDatabaseSchema,
+    cdm = cdm,
+    cdmDatabaseSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     outputFolder = params$outputFolder
   )
 

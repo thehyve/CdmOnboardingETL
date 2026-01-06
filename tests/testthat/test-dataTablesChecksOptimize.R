@@ -2,8 +2,8 @@ test_that("Data Tables Checks with Optimize", {
   skip(message = "not used")
   dataTablesResults <- CdmOnboarding::dataTablesChecks(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    cdmDatabaseSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder,
     optimize = TRUE

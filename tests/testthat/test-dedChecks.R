@@ -1,8 +1,14 @@
 test_that("Drug Exposure Diagnostics Checks", {
+
+  cdm <- CDMConnector::cdmFromCon(
+    con = params$connection,nection,
+    cdmSchema = params$cdmSchema,
+    writeSchema = params$writeSchema,
+    .softValidation = TRUE
+  )
+
   dedResults <- CdmOnboarding:::.runDedChecks(
-    connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    scratchDatabaseSchema = params$scratchDatabaseSchema
+    cdm
   )
 
   testthat::expect_type(dedResults, 'list')
