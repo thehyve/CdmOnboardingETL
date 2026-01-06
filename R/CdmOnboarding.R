@@ -108,6 +108,10 @@ cdmOnboarding <- function(
   if (!is.null(dedIngredientIds)) {
     warning("Argument `dedIngredientIds` has been deprecated, default ingredient list is used (`getDedIngredients()`).")
   }
+  # TODO: remove dedIngredientIds
+
+  # Check required arguments
+  # ConnectionDetails should be of type Dbiconnection
 
   connection <- DatabaseConnector::connect(connectionDetails)
 
@@ -303,6 +307,7 @@ cdmOnboarding <- function(
     NULL
   })
 
+  cdmHashByTable <- NULL
   if (runDataHashByTable) {
     cdmHashByTable <- tryCatch({
       CDMConnector::computeDataHashByTable(cdm)
