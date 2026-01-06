@@ -156,7 +156,7 @@ my_source_value_count_section <- function(x, data, domain, kind, smallCellCount)
   if (!is.null(n) && n > 0) {
     data$result$`%Records` <- prettyPc(data$result$`%Records`)
     if (kind == 'unmapped') {
-      alignment <- c('r', 'l', 'r', 'r') # #,name,n,%
+      alignment <- c('r', 'l', 'l', 'l', 'r', 'r') # #,value,concept_id,concept_name,n,%
     } else {
       alignment <- c('r', 'l', 'l', 'r', 'r') # #,concept_id,name,n,%
     }
@@ -172,8 +172,9 @@ my_source_value_count_section <- function(x, data, domain, kind, smallCellCount)
 
 my_unmapped_section <- function(x, data, domain, smallCellCount) {
   if (!is.null(data$result)) {
-    names(data$result) <- c("#", "Source Value", "#Records", "%Records")
+    names(data$result) <- c("#", "Source Value", "Source Concept id", "Source Concept Name", "#Records", "%Records")
   }
+  # TODO: for unit, value, route; no source concept id field, so better to leave it out of report.
   my_source_value_count_section(x, data, domain, "unmapped", smallCellCount)
 }
 

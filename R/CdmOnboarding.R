@@ -307,6 +307,7 @@ cdmOnboarding <- function(
     NULL
   })
 
+  cdmHashByTable <- NULL
   if (runDataHashByTable) {
     cdmHashByTable <- tryCatch({
       CDMConnector::computeDataHashByTable(cdm)
