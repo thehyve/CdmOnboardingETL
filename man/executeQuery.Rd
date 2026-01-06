@@ -7,10 +7,9 @@
 executeQuery(
   outputFolder,
   sqlFileName,
+  sqlFolder = "checks",
   successMessage = NULL,
-  connectionDetails = NULL,
-  sqlOnly = FALSE,
-  activeConnection = NULL,
+  connection = NULL,
   useExecuteSql = FALSE,
   ...
 )
@@ -20,17 +19,15 @@ executeQuery(
 
 \item{sqlFileName}{Name of the SQL file to execute}
 
+\item{sqlFolder}{(Optional) Path to the SQL file (default: 'checks')}
+
 \item{successMessage}{Message to log when the query is successful}
 
-\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
-
-\item{sqlOnly}{Boolean indicating if only the SQL should be written to file}
-
-\item{activeConnection}{An active connection object to use}
-
-\item{useExecuteSql}{Boolean indicating if the query should be executed using \code{executeSql} instead of \code{querySql}}
+\item{useExecuteSql}{Boolean indicating if the query should be executed using \code{dbExecute} instead of \code{dbGetQuery}}
 
 \item{...}{Additional parameters to pass to SqlRender::loadRenderTranslateSql}
+
+\item{conn}{An active connection object to use}
 }
 \value{
 result of the query

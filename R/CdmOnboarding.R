@@ -72,6 +72,7 @@
 #'   authors = authors,
 #'   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 #' )
+#' }
 #' @export
 cdmOnboarding <- function(
   connectionDetails,

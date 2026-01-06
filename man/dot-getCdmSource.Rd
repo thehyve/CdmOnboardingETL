@@ -4,10 +4,10 @@
 \alias{.getCdmSource}
 \title{Get CDM source table}
 \usage{
-.getCdmSource(connectionDetails, cdmDatabaseSchema, outputFolder)
+.getCdmSource(connection, cdmDatabaseSchema, outputFolder)
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connection}{An R object of type \code{DatabaseConnectorDbiConnection}}
 
 \item{cdmDatabaseSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.}

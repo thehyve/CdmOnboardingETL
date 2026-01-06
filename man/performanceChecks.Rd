@@ -5,17 +5,18 @@
 \title{The performane checks (for v5.x)}
 \usage{
 performanceChecks(
-  connectionDetails,
+  connection,
+  cdm,
   cdmDatabaseSchema,
   resultsDatabaseSchema,
-  scratchDatabaseSchema,
   cdmVersion = "5.4",
-  sqlOnly = FALSE,
   outputFolder = "output"
 )
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connection}{An R object of type \code{DatabaseConnectorDbiConnection}}
+
+\item{cdm}{An R object of type \code{cdm_reference}}
 
 \item{cdmDatabaseSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.}
@@ -23,11 +24,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 \item{resultsDatabaseSchema}{Fully qualified name of database schema that we can write final results to.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.}
 
-\item{scratchDatabaseSchema}{Fully qualified name of database schema where temporary tables can be written.}
-
 \item{cdmVersion}{Version of the CDM to check against. Default is "5.4".}
-
-\item{sqlOnly}{Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles}
 
 \item{outputFolder}{Path to store logs and SQL files}
 }

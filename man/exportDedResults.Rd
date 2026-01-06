@@ -2,13 +2,17 @@
 % Please edit documentation in R/ExportDedResults.R
 \name{exportDedResults}
 \alias{exportDedResults}
-\title{Export DrugExposureDiagnostics results to csv file in same folder as input file path}
+\title{Export DrugExposureDiagnostics results to csv file}
 \usage{
-exportDedResults(path)
+exportDedResults(results, df_ded = NULL, outputFolder = getwd())
 }
 \arguments{
-\item{path}{path to the CdmOnboarding .rds results file, output is written to the same folder}
+\item{results}{results object from \code{cdmOnboarding}}
+
+\item{df_ded}{optional dataframe with ded results, if NULL will use results$drugExposureDiagnostics}
+
+\item{outputFolder}{folder to store the results}
 }
 \description{
-Export DrugExposureDiagnostics results to csv file in same folder as input file path
+Export DrugExposureDiagnostics results to csv file
 }
