@@ -97,7 +97,6 @@ cdmOnboarding <- function(
   dqdJsonPath = NULL,
   optimize = FALSE
 ) {
-
   checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
   checkmate::assertCharacter(databaseId, len = 1, any.missing = FALSE)
 
@@ -140,10 +139,6 @@ cdmOnboarding <- function(
     dqdJsonPath = dqdJsonPath,
     optimize = optimize
   )
-
-  if (is.null(results)) {
-    return(NULL)
-  }
 
   documentGenerated <- NULL
 
@@ -282,7 +277,16 @@ cdmOnboarding <- function(
       "CdmOnboarding has been developed for OMOP CDM v5 and above. 'v%s' was found in the cdm_source table.",
       cdmVersion
     ))
-    return(NULL)
+    stop()
+  }
+
+  # If version equal to 5.4, check if episode table exists
+  if (compareVersion(a = cdmVersion, b = "5.4") >= 0) {
+    episodeTableExists <- "episode" %in% names(cdm)
+    if (!episodeTableExists) {
+      ParallelLogger::logWarn("CDM version 5.4 detected, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
+      cdmVersion <- "5.3"
+    }
   }
 
   # Snapshot -------------------------
