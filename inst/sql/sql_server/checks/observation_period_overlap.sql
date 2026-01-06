@@ -5,12 +5,11 @@
 -- overlapping pairs of observation periods.
 SELECT 
   a.person_id,
-  COUNT(*)/2 AS n_overlapping_pairs
+  COUNT(*) AS n_overlapping_pairs
 FROM @cdmDatabaseSchema.observation_period AS a
 JOIN @cdmDatabaseSchema.observation_period AS b ON
       a.person_id = b.person_id 
-  AND a.observation_period_start_date <= b.observation_period_end_date 
-  AND a.observation_period_end_date >= b.observation_period_start_date
+  AND DATEADD(day, 1, a.observation_period_end_date) >= b.observation_period_start_date
   AND a.observation_period_id <> b.observation_period_id
 GROUP BY a.person_id
 ;
