@@ -297,7 +297,7 @@ compat <- function(r) {
       mutate(
         SOURCE_CONCEPT_ID = integer(nrow(df$result)),
         SOURCE_CONCEPT_NAME = character(nrow(df$result)),
-        .after=SOURCE_VALUE
+        .after=.data$SOURCE_VALUE
       )
   }
 

@@ -63,7 +63,6 @@
 #'   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
 #'   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 #' )
-#'
 #' results <- CdmOnboarding::cdmOnboarding(
 #'   connection = connection,
 #'   cdmSchema = Sys.getenv("CDM_SCHEMA"),
@@ -72,6 +71,8 @@
 #'   authors = authors,
 #'   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 #' )
+#' unlink("output", recursive = TRUE, force = TRUE)
+#' 
 #' }
 #' @export
 cdmOnboarding <- function(

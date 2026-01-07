@@ -5,6 +5,7 @@
 ^LICENSE\.md$
 ^extras$
 ^output$
+^local$
 ^errorReport.+\.txt$
 ^.+session\.sql$
 ^\.vscode$
