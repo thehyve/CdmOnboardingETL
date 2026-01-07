@@ -173,7 +173,7 @@ cdmOnboarding <- function(
   })
 
   if (!(is.null(documentGenerated) || documentGenerated)) {
-    ParallelLogger::logError("CdmOnboarding document generation failed. Please fix any issues or reach out to the DARWIN-EU Coordination Centre.") # nolint
+    ParallelLogger::logError("CdmOnboarding document generation failed. Please fix any issues or reach out to the DARWIN EU Coordination Centre.") # nolint
   }
 
   invisible(results)

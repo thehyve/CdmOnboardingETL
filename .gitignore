@@ -49,3 +49,7 @@ errorReport*.txt
 # VS code
 .lntr
 .vscode/
+
+# Local
+local/
+OMOP.session.sql

@@ -69,16 +69,15 @@ compat <- function(r) {
   r$vocabularyResults$mappingCompleteness <- .fixDataFrameNames(r$vocabularyResults$mappingCompleteness)
   r$vocabularyResults$drugMapping <- .fixDataFrameNames(r$vocabularyResults$drugMapping)
 
-  # TODO: fix unmapped by adding source_concept_id and source_concept_name fields.
-  r$vocabularyResults$unmappedDrugs <- .fixDataFrameNames(r$vocabularyResults$unmappedDrugs)
-  r$vocabularyResults$unmappedConditions <- .fixDataFrameNames(r$vocabularyResults$unmappedConditions)
-  r$vocabularyResults$unmappedMeasurements <- .fixDataFrameNames(r$vocabularyResults$unmappedMeasurements)
-  r$vocabularyResults$unmappedObservations <- .fixDataFrameNames(r$vocabularyResults$unmappedObservations)
-  r$vocabularyResults$unmappedProcedures <- .fixDataFrameNames(r$vocabularyResults$unmappedProcedures)
-  r$vocabularyResults$unmappedDevices <- .fixDataFrameNames(r$vocabularyResults$unmappedDevices)
-  r$vocabularyResults$unmappedVisits <- .fixDataFrameNames(r$vocabularyResults$unmappedVisits)
+  r$vocabularyResults$unmappedDrugs <- .fixUnmapped(r$vocabularyResults$unmappedDrugs)
+  r$vocabularyResults$unmappedConditions <- .fixUnmapped(r$vocabularyResults$unmappedConditions)
+  r$vocabularyResults$unmappedMeasurements <- .fixUnmapped(r$vocabularyResults$unmappedMeasurements)
+  r$vocabularyResults$unmappedObservations <- .fixUnmapped(r$vocabularyResults$unmappedObservations)
+  r$vocabularyResults$unmappedProcedures <- .fixUnmapped(r$vocabularyResults$unmappedProcedures)
+  r$vocabularyResults$unmappedDevices <- .fixUnmapped(r$vocabularyResults$unmappedDevices)
+  r$vocabularyResults$unmappedVisits <- .fixUnmapped(r$vocabularyResults$unmappedVisits)
   if (!is.null(r$vocabularyResults$unmappedUnits$result)) {
-    r$vocabularyResults$unmappedUnits <- .fixDataFrameNames(r$vocabularyResults$unmappedUnits)
+    r$vocabularyResults$unmappedUnits <- .fixUnmapped(r$vocabularyResults$unmappedUnits)
     r$vocabularyResults$unmappedUnitsMeas$result <- r$vocabularyResults$unmappedUnits$result %>%
       filter(.data$DOMAIN == "measurement") %>%  # Renamed from TABLE to DOMAIN with fixDataFrameNames
       select(-.data$DOMAIN)
@@ -90,12 +89,44 @@ compat <- function(r) {
     r$vocabularyResults$unmappedUnitsObs$duration <- r$vocabularyResults$unmappedUnits$duration
     r$vocabularyResults$unmappedUnits <- NULL
   } else {
-    r$vocabularyResults$unmappedUnitsMeas <- .fixDataFrameNames(r$vocabularyResults$unmappedUnitsMeas)
-    r$vocabularyResults$unmappedUnitsObs <- .fixDataFrameNames(r$vocabularyResults$unmappedUnitsObs)
+    r$vocabularyResults$unmappedUnitsMeas <- .fixUnmapped(r$vocabularyResults$unmappedUnitsMeas)
+    r$vocabularyResults$unmappedUnitsObs <- .fixUnmapped(r$vocabularyResults$unmappedUnitsObs)
   }
 
-  if (!("unmappedEpisodes" %in% r$vocabularyResults)) {
+  if ("unmappedEpisodes" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedEpisodes <- .fixUnmapped(r$vocabularyResults$unmappedEpisodes)
+  } else {
     r$vocabularyResults$unmappedEpisodes <- NULL
+  }
+
+  if ("unmappedSpecialty" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedSpecialty <- .fixUnmapped(r$vocabularyResults$unmappedSpecialty)
+  } else {
+    r$vocabularyResults$unmappedSpecialty <- NULL
+  }
+
+  if ("unmappedDrugRoute" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedDrugRoute <- .fixUnmapped(r$vocabularyResults$unmappedDrugRoute)
+  } else {
+    r$vocabularyResults$unmappedDrugRoute <- NULL
+  }
+
+  if ("unmappedValuesObs" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedValuesObs <- .fixUnmapped(r$vocabularyResults$unmappedValuesObs)
+  } else {
+    r$vocabularyResults$unmappedValuesObs <- NULL
+  }
+  
+  if ("unmappedValuesMeas" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedValuesMeas <- .fixUnmapped(r$vocabularyResults$unmappedValuesMeas)
+  } else {
+    r$vocabularyResults$unmappedValuesMeas <- NULL
+  }
+
+  if ("unmappedVisitDetails" %in% names(r$vocabularyResults)) {
+    r$vocabularyResults$unmappedVisitDetails <- .fixUnmapped(r$vocabularyResults$unmappedVisitDetails)
+  } else {
+    r$vocabularyResults$unmappedVisitDetails <- NULL
   }
 
   r$vocabularyResults$mappedDrugs <- .fixDataFrameNames(r$vocabularyResults$mappedDrugs)
@@ -125,6 +156,10 @@ compat <- function(r) {
 
   if (!("mappedEpisodes" %in% r$vocabularyResults)) {
     r$vocabularyResults$mappedEpisodes <- NULL
+  }
+
+  if (!("countConceptRecommended" %in% r$vocabularyResults)) {
+    r$vocabularyResults$countConceptRecommended <- NA
   }
 
   r <- .fixP_RECORDS(r)
@@ -165,7 +200,6 @@ compat <- function(r) {
 
   return(r)
 }
-
 
 .get_cdmonboarding_version <- function(r) {
   if (is.null(r$cdmOnboardingVersion)) {
@@ -252,6 +286,22 @@ compat <- function(r) {
     r$drugExposureDiagnostics$result$n_dose_and_missingness <- NA
     r$drugExposureDiagnostics$result$median_daily_dose_q05_q95 <- NA
   }
-  r$drugExposureDiagnostics$packageVersion <- '1.0.5' # TODO: get from results$performanceResults$packinfo$Package
+  r$drugExposureDiagnostics$packageVersion <- 'NA' # TODO: get from results$performanceResults$packinfo$Package
   return(r)
 }
+
+.fixUnmapped <- function(df) {
+  # add source_concept_id and source_concept_name if missing
+  if (!("SOURCE_CONCEPT_ID" %in% names(df$result))) {
+    df$result <- df$result %>%
+      mutate(
+        SOURCE_CONCEPT_ID = integer(nrow(df$result)),
+        SOURCE_CONCEPT_NAME = character(nrow(df$result)),
+        .after=SOURCE_VALUE
+      )
+  }
+
+  #apply general fixes
+  df <- .fixDataFrameNames(df)
+  return(df)
+  }

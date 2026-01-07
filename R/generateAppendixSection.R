@@ -29,13 +29,17 @@ generateAppendixSection <- function(doc, df, optimized) {
   # vocabulary table counts
   if (!is.null(df$vocabularyCounts$result)) {
     df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
-      arrange(desc(.data$COUNT)) %>%
-      dplyr::bind_rows(
-        data.frame(
-          TABLENAME = "concept_recommended",
-          COUNT = df$countConceptRecommended
+      arrange(desc(.data$COUNT))
+
+    if (!is.null(df$countConceptRecommended)) {
+      df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
+        dplyr::bind_rows(
+          data.frame(
+            TABLENAME = "concept_recommended",
+            COUNT = df$countConceptRecommended
+          )
         )
-      )
+    }
 
     doc <- doc %>%
       officer::body_add_par("Vocabulary table counts", style = pkg.env$styles$heading2) %>%
