@@ -83,7 +83,7 @@ generatePerformanceSection <- function(doc, results) {
     df$cdmConnectorBenchmark$result <- df$cdmConnectorBenchmark$result %>%
       mutate(
         `Task` = .data$task,
-        `Time taken` = prettyunits::pretty_sec(.data$time_taken_secs),
+        `Duration` = prettyunits::pretty_sec(.data$time_taken_secs),
         .keep = "none"
       )
     doc <- doc %>%

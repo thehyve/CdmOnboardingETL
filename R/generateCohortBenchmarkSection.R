@@ -29,7 +29,7 @@ generateCohortBenchmarkSection <- function(doc, df) {
     dplyr::mutate(
       `Cohort` = .data$cohort_name,
       `#Persons` = ifelse(is.na(.data$error), .data$n_subject_bins, 'ERROR'),
-      `Duration (s)` = ifelse(is.na(.data$error), prettyunits::pretty_sec(.data$duration), 'ERROR'),
+      `Duration` = ifelse(is.na(.data$error), prettyunits::pretty_sec(.data$duration), 'ERROR'),
       .keep = "none"
     )
   

@@ -23,9 +23,10 @@
 #' Generates the Appendix section for the Results Document
 #'
 #' @param doc officer document object to add the section to
-#' @param df Results object from \code{cdmOnboarding} vocabularyResults
+#' @param results Results object from \code{cdmOnboarding}
 #' @param optimized boolean indicating if the optimized queries were used
-generateAppendixSection <- function(doc, df, optimized) {
+generateAppendixSection <- function(doc, results, optimized) {
+  df <- results$vocabularyResults
   # vocabulary table counts
   if (!is.null(df$vocabularyCounts$result)) {
     df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
@@ -61,17 +62,17 @@ generateAppendixSection <- function(doc, df, optimized) {
   doc <- doc %>%
     officer::body_add_par("Table hashes", style = pkg.env$styles$heading2)
 
-  if (!is.null(df$cdmHashByTable)) {
+  if (!is.null(results$cdmHashByTable)) {
     doc <- doc %>%
       my_table_caption("MD5 Hashes of the CDM tables, as computed by CdmConnector::dataHashByTable using table names, row count, unique column and unique count.", sourceSymbol = pkg.env$sources$cdm) %>%
       my_body_add_table(
-        df$cdmHashByTable %>% dplyr::mutate(
+        results$cdmHashByTable %>% dplyr::mutate(
           `Table` = .data$table_name,
           `#Records` = .data$table_row_count,
           `Unique Column` = .data$unique_column,
           `#Unique` = .data$n_unique_values,
           `Hash` = .data$table_hash,
-          `Time Taken` = prettyunits::pretty_sec(.data$compute_time_minutes * 60),
+          `Duration` = prettyunits::pretty_sec(.data$compute_time_minutes * 60),
           .keep = 'none'
         )
       )
