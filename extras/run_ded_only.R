@@ -35,7 +35,7 @@ CDMConnector::cdmDisconnect(cdm)
 
 mappingLevels <- CdmOnboarding::getMappingLevel(dedResults)
 
-dedSummary <- list(
+dedResults <- list(
   result = dedResults$diagnosticsSummary,
   resultMappingLevel = mappingLevels,
   duration = duration,
@@ -44,4 +44,11 @@ dedSummary <- list(
 
 outputPath <- './'
 
-saveRDS(dedSummary, file.path(outputPath, "dedSummary.rds"))
+saveRDS(dedResults, file.path(outputPath, "dedSummary.rds"))
+
+# Optional, export to csv
+CdmOnboarding::exportDedResults(
+  results = readRDS(file.path(outputPath, "onboarding_results_<dbname>_<yyyymmdd>.rds")),
+  df_ded = dedResults,
+  outputFolder = outputPath
+)
