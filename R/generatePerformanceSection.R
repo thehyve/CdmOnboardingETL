@@ -125,7 +125,6 @@ generatePerformanceSection <- function(doc, results) {
       dplyr::summarize(
         n_indexes_applied = sum(.data$actual, na.rm = TRUE),
         n_indexes_expected = sum(.data$expected, na.rm = TRUE),
-        n_indexes_missing = sum(is.na(.data$actual), na.rm = TRUE)
       ) %>%
       tidyr::pivot_wider(
         names_from = .data$type,
@@ -138,10 +137,8 @@ generatePerformanceSection <- function(doc, results) {
         .data$TABLENAME,
         `xpk - Applied` = .data$n_indexes_applied_xpk,
         `xpk - Expected` = .data$n_indexes_expected_xpk,
-        `xpk - Missing` = .data$n_indexes_missing_xpk,
         `idx - Applied` = .data$n_indexes_applied_idx,
         `idx - Expected` = .data$n_indexes_expected_idx,
-        `idx - Missing` = .data$n_indexes_missing_idx
       )
     indexTotals <- data.frame(TABLENAME  = "Total", t(colSums(indexOverview[, -1])))
     names(indexTotals) <- names(indexOverview)
