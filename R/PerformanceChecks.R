@@ -55,6 +55,25 @@ performanceChecks <- function(
     resultsDatabaseSchema = resultsDatabaseSchema
   )
 
+  # System details
+  systemDetails <- tryCatch({
+    benchmarkme::get_sys_details(sys_info = FALSE)
+  }, error = function(e) {
+    ParallelLogger::logWarn(sprintf("Failed to fun benchmarkme::get_sys_details: %s", conditionMessage(e)))
+    ParallelLogger::logInfo("Trying to get system details partially...")
+    list(
+      r_version = tryCatch(benchmarkme::get_r_version(), error = function(e) NA),
+      cpu = tryCatch(benchmarkme::get_cpu(), error = function(e) NA),
+      ram = tryCatch(benchmarkme::get_ram(), error = function(e) NA)
+    )
+  })
+  ParallelLogger::logInfo(sprintf(
+    "Running Performance Checks on %s cpu with %s cores, and %s ram.",
+    systemDetails$cpu$model_name,
+    systemDetails$cpu$no_of_cores,
+    prettyunits::pretty_bytes(as.numeric(systemDetails$ram))
+  ))
+
   performanceBenchmark <- executeQuery(
     outputFolder,
     "performance_benchmark.sql",
@@ -110,17 +129,6 @@ performanceChecks <- function(
   darwinPackages <- getDARWINpackages()
   darwinPackageVersions <- packinfo[packinfo$Package %in% darwinPackages, ]
 
-  # System details
-  sys_details <- benchmarkme::get_sys_details(sys_info = FALSE)
-  ParallelLogger::logInfo(
-    sprintf(
-      "Running Performance Checks on %s cpu with %s cores, and %s ram.",
-      sys_details$cpu$model_name,
-      sys_details$cpu$no_of_cores,
-      prettyunits::pretty_bytes(as.numeric(sys_details$ram))
-    )
-  )
-
   # DBMS version
   dmsVersion <- .getDbmsVersion(connection, outputFolder)
   ParallelLogger::logInfo(sprintf('> DBMS version found: "%s"', dmsVersion))
@@ -131,7 +139,7 @@ performanceChecks <- function(
     cdmConnectorBenchmark = cdmConnectorBenchmark,
     cohortBenchmark = cohortBenchmark,
     appliedIndexes = appliedIndexes,
-    sys_details = sys_details,
+    systemDetails = systemDetails,
     dmsVersion = dmsVersion,
     packinfo = packinfo,
     hadesPackageVersions = hadesPackageVersions,

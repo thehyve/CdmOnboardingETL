@@ -53,11 +53,11 @@ generatePerformanceSection <- function(doc, results) {
   #system detail
   doc <- doc %>%
     officer::body_add_par("System Information", style = pkg.env$styles$heading2) %>%
-    officer::body_add_par(paste0("Installed R version: ", df$sys_details$r_version$version.string)) %>%
-    officer::body_add_par(paste0("System CPU vendor: ", df$sys_details$cpu$vendor_id, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System CPU model: ", df$sys_details$cpu$model_name, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System CPU number of cores: ", df$sys_details$cpu$no_of_cores, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System RAM: ", prettyunits::pretty_bytes(as.numeric(df$sys_details$ram, collapse = ", ")))) %>%
+    officer::body_add_par(paste0("Installed R version: ", df$systemDetails$r_version$version.string)) %>%
+    officer::body_add_par(paste0("System CPU vendor: ", df$systemDetails$cpu$vendor_id, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System CPU model: ", df$systemDetails$cpu$model_name, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System CPU number of cores: ", df$systemDetails$cpu$no_of_cores, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System RAM: ", prettyunits::pretty_bytes(as.numeric(df$systemDetails$ram, collapse = ", ")))) %>%
     officer::body_add_par(paste0("DBMS: ", df$dmsVersion)) %>%
     officer::body_add_par(paste0("WebAPI version: ", results$webAPIversion)) %>%
     officer::body_add_par("")

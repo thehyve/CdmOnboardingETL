@@ -171,24 +171,32 @@ compat <- function(r) {
 
   # Performance
   if (is.null(r$performanceResults$packinfo)) {
-    r$performanceResults$sys_details <- r$sys_details
-    r$performanceResults$dmsVersion <- r$dmsVersion
-    r$performanceResults$packinfo <- data.frame(r$packinfo)
-    r$performanceResults$hadesPackageVersions <- r$hadesPackageVersions
-    r$performanceResults$darwinPackageVersions <- r$darwinPackageVersions
-
-    r$packinfo <- NULL
-    r$dmsVersion <- NULL
-    r$sys_details <- NULL
-    r$hadesPackageVersions <- NULL
-  }
-  if (is.null(r$performanceResults$darwinPackageVersions)) {
-    print("No darwinPackageVersions found, creating empty dataframe")
-    r$performanceResults$darwinPackageVersions <- data.frame(
-      Package = character(0),
-      Version = character(0),
-      LibPath = character(0)
-    )
+    if ('sys_details' %in% names(r)) {
+      r$performanceResults$systemDetails <- r$sys_details
+    } else if ('sys_details' %in% names(r)) {
+      r$performanceResults$systemDetails <- r$performanceResults$sys_details
+    }
+    if ('dmsVersion' %in% names(r)) {
+      r$performanceResults$dmsVersion <- r$dmsVersion
+    }
+    if ('packinfo' %in% names(r)) {
+      r$performanceResults$packinfo <- data.frame(r$packinfo)
+    }
+    if ('hadesPackageVersions' %in% names(r)) {
+      r$performanceResults$hadesPackageVersions <- r$hadesPackageVersions
+    }
+    if ('darwinPackageVersions' %in% names(r)) {
+      r$performanceResults$darwinPackageVersions <- r$darwinPackageVersions
+    }
+  
+    if (is.null(r$performanceResults$darwinPackageVersions)) {
+      print("No darwinPackageVersions found, creating empty dataframe")
+      r$performanceResults$darwinPackageVersions <- data.frame(
+        Package = character(0),
+        Version = character(0),
+        LibPath = character(0)
+      )
+    }
   }
 
   if (is.null(r$performanceResults$hadesPackageVersions$LibPath)) {

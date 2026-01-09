@@ -18,7 +18,7 @@ test_that("Performance Checks", {
     performanceResults,
     c(
       'achillesTiming', 'performanceBenchmark', 'cdmConnectorBenchmark',
-      'appliedIndexes', 'sys_details', 'dmsVersion', 'packinfo',
+      'appliedIndexes', 'systemDetails', 'dmsVersion', 'packinfo',
       'hadesPackageVersions', 'darwinPackageVersions'
     ),
     ignore.order = TRUE
