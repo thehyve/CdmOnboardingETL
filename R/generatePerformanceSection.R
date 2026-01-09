@@ -128,7 +128,7 @@ generatePerformanceSection <- function(doc, results) {
       ) %>%
       tidyr::pivot_wider(
         names_from = .data$type,
-        values_from = c(.data$n_indexes_applied, .data$n_indexes_expected, .data$n_indexes_missing),
+        values_from = c(.data$n_indexes_applied, .data$n_indexes_expected),
         names_glue = "{.name}",  #_{.value}
         values_fill = 0,
         names_sort = TRUE
