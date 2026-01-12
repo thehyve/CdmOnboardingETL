@@ -278,9 +278,9 @@ cdmOnboarding <- function(
     stop()
   }
 
-  # If version equal to 5.4, check if episode table exists
+  # If version later than 5.4, check if episode table exists
   if (compareVersion(a = cdmVersion, b = "5.4") >= 0) {
-    episodeTableExists <- "episode" %in% names(cdm)
+    episodeTableExists <- "episode" %in% CDMConnector::listTables(connection, cdmSchema)
     if (!episodeTableExists) {
       ParallelLogger::logWarn("CDM version 5.4 detected, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
       cdmVersion <- "5.3"
@@ -320,7 +320,6 @@ cdmOnboarding <- function(
   if (utils::compareVersion(achillesMetadata$ACHILLES_VERSION, '1.7') < 1) {
     ParallelLogger::logWarn(sprintf("Results from an outdated Achilles version (v%s) were detected, please consider installing the latest release of Achilles and rerun CdmOnboarding.", achillesMetadata$ACHILLES_VERSION)) #nolint
   }
-
 
   # Check whether results for required Achilles analyses is available. Generate soft warning.
   # At least require person, obs. period, condition and drug exposure. Other domains can be empty.
