@@ -1,3 +1,17 @@
+# CdmOnboarding 4.0.0
+
+ * Refactor to use DBI connection details
+ * Support for CdmConnector 2.0.0, DatabaseConnector 7.0.0
+ * Add hashes, overall snapshot and per table
+ * Include table
+ * Add cohorts to benchmark
+ * Refactoring of arguments: 
+  - rename cdmDatabaseSchema to cdmSchema, resultsDatabaseSchema to resultsSchema, scratchDatabaseSchema to writeSchema
+  - remove executeCohortBenchmark (now part of performanceBenchmarking)
+  - remove oracleTempSchema
+  - remove dedIngredientIds
+ * Several bugfixes and document improvements
+
 # CdmOnboarding 3.3.4
 
  * Fix DED issue when using older verison

@@ -1,6 +1,6 @@
 Package: CdmOnboarding
 Title: Generate Onboarding Report on an OMOP CDM Instance
-Version: 3.3.4
+Version: 4.0.0
 Authors@R: 
   c(person(given = "Peter",
            family = "Rijnbeek",
@@ -26,16 +26,15 @@ BugReports: https://github.com/darwin-eu/CdmOnboarding/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.3
 Depends: 
-  R (>= 4.0.0)
+  R (>= 4.2.0)
 Imports:
-  DatabaseConnector (>= 5.0.2),
+  DatabaseConnector (>= 7.0.0),
   ParallelLogger,
   SqlRender,
   DrugExposureDiagnostics (>= 1.1.0),
-  CDMConnector (>= 1.0.0),
-  DBI,
+  CDMConnector (>= 2.2.0),
   benchmarkme,
   prettyunits,
   dplyr,
@@ -51,15 +50,13 @@ Imports:
   stringr,
   httr,
   utils,
-  tictoc,
-  CirceR
+  checkmate
 Suggests:
+  DBI,
   RPostgres,
   duckdb,
   devtools,
   testthat (>= 3.0.0),
   withr,
-  Achilles
-Remotes:
-  OHDSI/Achilles
+  Achilles (>= 1.7.2)
 Config/testthat/edition: 3

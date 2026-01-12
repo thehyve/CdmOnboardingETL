@@ -29,77 +29,94 @@
 #' @details
 #' \code{PerformanceChecks} runs a list of performance checks as part of the CDM Onboarding procedure
 #'
-#' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param connection                       An R object of type \code{DatabaseConnectorDbiConnection}
+#' @param cdm                              An R object of type \code{cdm_reference}
 #' @param cdmDatabaseSchema    	           Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param resultsDatabaseSchema		         Fully qualified name of database schema that we can write final results to.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.
-#' @param scratchDatabaseSchema            Fully qualified name of database schema where temporary tables can be written.
 #' @param cdmVersion                       Version of the CDM to check against. Default is "5.4".
-#' @param sqlOnly                          Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles
 #' @param outputFolder                     Path to store logs and SQL files
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @export
 performanceChecks <- function(
-  connectionDetails,
+  connection,
+  cdm,
   cdmDatabaseSchema,
   resultsDatabaseSchema,
-  scratchDatabaseSchema,
   cdmVersion = "5.4",
-  sqlOnly = FALSE,
   outputFolder = "output"
 ) {
   achillesTiming <- executeQuery(
     outputFolder,
     "achilles_timing.sql",
-    "Retrieving duration of Achilles queries",
-    connectionDetails,
-    sqlOnly,
+    successMessage = "Retrieving duration of Achilles queries",
+    connection = connection,
     resultsDatabaseSchema = resultsDatabaseSchema
   )
+
+  # System details
+  systemDetails <- tryCatch({
+    benchmarkme::get_sys_details(sys_info = FALSE)
+  }, error = function(e) {
+    ParallelLogger::logWarn(sprintf("Failed to fun benchmarkme::get_sys_details: %s", conditionMessage(e)))
+    ParallelLogger::logInfo("Trying to get system details partially...")
+    list(
+      r_version = tryCatch(benchmarkme::get_r_version(), error = function(e) NA),
+      cpu = tryCatch(benchmarkme::get_cpu(), error = function(e) NA),
+      ram = tryCatch(benchmarkme::get_ram(), error = function(e) NA)
+    )
+  })
+  ParallelLogger::logInfo(sprintf(
+    "Running Performance Checks on %s cpu with %s cores, and %s ram.",
+    systemDetails$cpu$model_name,
+    systemDetails$cpu$no_of_cores,
+    prettyunits::pretty_bytes(as.numeric(systemDetails$ram))
+  ))
 
   performanceBenchmark <- executeQuery(
     outputFolder,
     "performance_benchmark.sql",
-    "Executing vocabulary query benchmark",
-    connectionDetails,
-    sqlOnly,
+    successMessage = "Executing vocabulary query benchmark",
+    connection = connection,
     cdmDatabaseSchema = cdmDatabaseSchema
   )
 
   cdmConnectorBenchmark <- tryCatch({
-    .runBenchmarkCdmConnector(
-      connectionDetails,
-      cdmDatabaseSchema,
-      scratchDatabaseSchema
-    )
+    .runBenchmarkCdmConnector(cdm)
   }, error = function(e) {
     ParallelLogger::logError("Execution of CDMConnector Benchmark failed: ", e)
     NULL
   })
 
+  # Cohort Benchmark checks -------------------------------------------------------------------------------------
+  cohortBenchmark <- tryCatch({
+    .runCohortBenchmark(cdm)
+  }, error = function(e) {
+    ParallelLogger::logError("Cohort Benchmark failed: ", e)
+    NULL
+  })
+
   # Applied indexes
   appliedIndexes <- NULL
-  if (connectionDetails$dbms == "postgresql") {
+  if (connection@dbms == "postgresql") {
     appliedIndexes <- executeQuery(
       outputFolder,
       "applied_indexes_postgres.sql",
-      "Retrieving applied indexes",
-      connectionDetails,
-      sqlOnly,
+      successMessage = "Retrieving applied indexes",
+      connection = connection,
       cdmDatabaseSchema = cdmDatabaseSchema
     )
-  } else if (connectionDetails$dbms == "sql server") {
+  } else if (connection@dbms == "sql server") {
     appliedIndexes <- executeQuery(
       outputFolder,
       "applied_indexes_sql_server.sql",
-      "Retrieving applied indexes",
-      connectionDetails,
-      sqlOnly,
+      successMessage = "Retrieving applied indexes",
+      connection = connection,
       cdmDatabaseSchema = cdmDatabaseSchema
     )
   } else {
-    ParallelLogger::logWarn(sprintf("The applied indexes query cannot be run for '%s', it is only implemented for PostgreSQL and MS Sql Server.", connectionDetails$dbms))
+    ParallelLogger::logWarn(sprintf("The applied indexes query cannot be run for '%s', it is only implemented for PostgreSQL and MS Sql Server.", connection@dbms))
   }
 
   # Installed Packages
@@ -112,27 +129,17 @@ performanceChecks <- function(
   darwinPackages <- getDARWINpackages()
   darwinPackageVersions <- packinfo[packinfo$Package %in% darwinPackages, ]
 
-  # System details
-  sys_details <- benchmarkme::get_sys_details(sys_info = FALSE)
-  ParallelLogger::logInfo(
-    sprintf(
-      "Running Performance Checks on %s cpu with %s cores, and %s ram.",
-      sys_details$cpu$model_name,
-      sys_details$cpu$no_of_cores,
-      prettyunits::pretty_bytes(as.numeric(sys_details$ram))
-    )
-  )
-
   # DBMS version
-  dmsVersion <- .getDbmsVersion(connectionDetails, outputFolder)
+  dmsVersion <- .getDbmsVersion(connection, outputFolder)
   ParallelLogger::logInfo(sprintf('> DBMS version found: "%s"', dmsVersion))
 
   list(
     achillesTiming = achillesTiming,
     performanceBenchmark = performanceBenchmark,
     cdmConnectorBenchmark = cdmConnectorBenchmark,
+    cohortBenchmark = cohortBenchmark,
     appliedIndexes = appliedIndexes,
-    sys_details = sys_details,
+    systemDetails = systemDetails,
     dmsVersion = dmsVersion,
     packinfo = packinfo,
     hadesPackageVersions = hadesPackageVersions,
@@ -174,9 +181,9 @@ getDARWINpackages <- function() {
   ## To update the DARWIN package list:
   # packageListUrl <- "https://raw.githubusercontent.com/mvankessel-EMC/DependencyReviewerWhitelists/main/darwin.csv" #nolint
   # packageList <- read.table(packageListUrl, sep = ",", header = TRUE) #nolint
-  # packages <- packageList[packageList$version == '*', 'package'] |> #nolint
-  #             gsub("darwin-eu-dev/", "", x = _) |> #nolint
-  #             gsub("darwin-eu/", "", x = _) |> #nolint
+  # packages <- packageList[packageList$version == '*', 'package'] %>% #nolint
+  #             gsub("darwin-eu-dev/", "", x = _) %>% #nolint
+  #             gsub("darwin-eu/", "", x = _) %>% #nolint
   #             union(c('CdmOnboarding', 'DashboardExport')) #nolint
   # dump("packages", "") #nolint
   c(
@@ -274,9 +281,9 @@ getDARWINpackages <- function() {
   )
 }
 
-.getDbmsVersion <- function(connectionDetails, outputFolder) {
+.getDbmsVersion <- function(connection, outputFolder) {
   versionQuery <- switch(
-    connectionDetails$dbms,
+    connection@dbms,
     "postgresql" = "SELECT version();",
     "redshift" = "SELECT version();",
     "sql server" = "SELECT @@version;",
@@ -289,13 +296,12 @@ getDARWINpackages <- function() {
   )
 
   if (is.null(versionQuery)) {
-    ParallelLogger::logWarn(sprintf("> DBMS '%s' is not supported for version retrieval.", connectionDetails$dbms))
+    ParallelLogger::logWarn(sprintf("> DBMS '%s' is not supported for version retrieval.", connection@dbms))
     return(NULL)
   }
 
   errorReportFile <- file.path(outputFolder, "errorDBMSversion.txt")
   tryCatch({
-    connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
     version <- DatabaseConnector::querySql(
       connection = connection,
       sql = versionQuery,
@@ -307,9 +313,6 @@ getDARWINpackages <- function() {
     ParallelLogger::logWarn("> DBMS version could not be retrieved:")
     ParallelLogger::logWarn(e)
     NULL
-  }, finally = {
-    DatabaseConnector::disconnect(connection = connection)
-    rm(connection)
   })
 }
 
@@ -330,28 +333,9 @@ getDARWINpackages <- function() {
 
 
 #' Run Benchmark CDMConnector
-#' @param connectionDetails An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema Fully qualified name of database schema that contains OMOP CDM schema.
-#'                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
-#' @param scratchDatabaseSchema Fully qualified name of database schema where temporary tables can be written.
+#' @param cdm An R object of type \code{cdm_reference}
 #' @returns list of DED diagnostics_summary and duration
-.runBenchmarkCdmConnector <- function(
-  connectionDetails,
-  cdmDatabaseSchema,
-  scratchDatabaseSchema
-) {
-  # Connect to the database with CDMConnector
-  connection <- .getCdmConnection(connectionDetails)
-
-  on.exit(.disconnectCdmConnection(connection))
-
-  cdm <- CDMConnector::cdmFromCon(
-    connection,
-    cdmSchema = cdmDatabaseSchema,
-    writeSchema = scratchDatabaseSchema,
-    .softValidation = TRUE
-  )
-
+.runBenchmarkCdmConnector <- function(cdm) {
   ParallelLogger::logInfo("Starting execution of CDMConnector Benchmark")
 
   start_time <- Sys.time()

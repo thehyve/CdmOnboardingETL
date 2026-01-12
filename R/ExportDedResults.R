@@ -23,28 +23,33 @@
 #'
 #' @param path path to the CdmOnboarding .rds results file, output is written to the same folder
 #' @export
-exportDedResults <- function(
+exportDedResultsFromPath <- function(
   path
 ) {
   results <- readRDS(path)
   outputFolder <- dirname(path)
-  .exportDedResults(results, outputFolder)
+  exportDedResults(results, outputFolder)
 }
 
 #' Export DrugExposureDiagnostics results to csv file
 #'
 #' @param results results object from \code{cdmOnboarding}
+#' @param df_ded optional dataframe with ded results, if NULL will use results$drugExposureDiagnostics
 #' @param outputFolder folder to store the results
-.exportDedResults <- function(
+#' @export
+exportDedResults <- function(
   results,
+  df_ded = NULL,
   outputFolder = getwd()
 ) {
-  df_ded <- results$drugExposureDiagnostics
-  if (length(df_ded$result) == 0) {
+  if (is.null(df_ded)) {
+    df_ded <- results$drugExposureDiagnostics
+  }
+
+  if (nrow(df_ded$result) == 0) {
     ParallelLogger::logInfo("No DrugExposureDiagnostics results to export")
     return()
   }
-
   dedVersion <- .getDedVersion(df_ded)
 
   dedResult <- .formatDedResults(df_ded$result, dedVersion)
@@ -64,13 +69,19 @@ exportDedResults <- function(
       file = file.path(outputFolder, outputFilename),
       row.names = TRUE # first column will be removed when uploading to portal
     )
-  ParallelLogger::logInfo(sprintf("DrugExposureDiagnostics results written to '%s'", outputFilename))
+  ParallelLogger::logInfo(sprintf("> DrugExposureDiagnostics results written to '%s'", file.path(outputFolder, outputFilename)))
 }
 
 .formatDedResults <- function(ded_results, dedVersion) {
-  ded_results$ingredient_concept_id <- as.character(ded_results$ingredient_concept_id)
-  ded_results$n_records <- prettyHr(round(ded_results$n_records / 10) * 10)
-  ded_results$n_patients <- prettyHr(round(ded_results$n_patients / 10) * 10)
+  ded_results <- ded_results %>%
+    mutate(
+      ingredient_concept_id <- as.character(.data$ingredient_concept_id),
+      # Round counts to nearest 10
+      n_records <- prettyHr(round(.data$n_records / 10) * 10),
+      n_patients <- prettyHr(round(.data$n_patients / 10) * 10)   
+    ) %>%
+    # Ingredients with highest record count first
+    arrange(desc(.data$n_records))
 
   # In DED v1.0.9 the dose columns can be missing
   if (!("n_dose_and_missingness" %in% colnames(ded_results))) {
@@ -118,10 +129,9 @@ exportDedResults <- function(
 }
 
 .getDedVersion <- function(df) {
-  tryCatch(
-    df$packageVersion,
-    error = function(e) {
-      "Unknown"
-    }
-  )
+  if (!is.null(df$packageVersion)) {
+    return(df$packageVersion)
+  } else {
+    return("Unknown")
+  }
 }

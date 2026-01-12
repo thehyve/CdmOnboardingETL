@@ -3,22 +3,28 @@ path <- readline("Enter the path where CdmOnboarding results are: ")
 
 rds <- list.files(path, '.rds')
 results <- readRDS(file.path(path, rds))
+results <- readRDS(path)
 authors <- c('-')
 
 # Optional, add separate DED results
 path_ded <- readline("Enter the path for DED file: ")
-ded_results <- readRDS(file.path(path_ded))
+ded_results <- readRDS(path_ded)
+CdmOnboarding::exportDedResults(path_ded)
 results$drugExposureDiagnostics <- ded_results
 
+if (FALSE) {
+  options(error = browser)
+  devtools::install(quick = TRUE, upgrade = 'never')
+  devtools::reload()
+}
 # Optional, make compatible with current version
 results <- CdmOnboarding::compat(results)
+# source('R/compat.R')
+# results <- compat(results)
 
-# options(error = traceback)
-# devtools::install(quick = TRUE, upgrade = 'never')
-# devtools::reload()
 CdmOnboarding::generateResultsDocument(
   results = results,
-  outputFolder = path,
+  outputFolder = 'output',
   authors = authors
 )
 

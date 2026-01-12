@@ -1,8 +1,8 @@
 test_that("Data Tables Checks", {
   dataTablesResults <- CdmOnboarding::dataTablesChecks(
-    connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    connection = params$connection,
+    cdmDatabaseSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder
   )

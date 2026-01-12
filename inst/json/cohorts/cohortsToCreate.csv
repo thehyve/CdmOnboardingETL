@@ -5,5 +5,7 @@ cohortId,cohortName,jsonPath
 4,Kawasaki,kawasaki_disease.json
 5,Myocarditis,myocarditis.json
 6,Haemorrhagic stroke,haemorrhagic_stroke.json
-7,Ischaemic stroke,ischaemic_stroke.json
 8,COVID-19,covid_19.json
+9,BMI measurement in range,valid_bmi.json
+10,Pregnant Female,pregnancy.json
+11,Exposure to Anticoagulants,anticoagulants.json

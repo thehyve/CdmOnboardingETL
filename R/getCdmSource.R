@@ -22,48 +22,35 @@
 
 
 #' Get CDM source table
-#' @param connectionDetails                An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param connection                       An R object of type \code{DatabaseConnectorDbiConnection}
 #' @param cdmDatabaseSchema    	           Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param outputFolder                     Path to store logs and SQL files
 #' @return                                 A data frame with the CDM source table
 .getCdmSource <- function(
-  connectionDetails,
+  connection,
   cdmDatabaseSchema,
   outputFolder
 ) {
-  sql <- SqlRender::loadRenderTranslateSql(
-    sqlFilename = file.path("checks", "get_cdm_source_table.sql"),
-    packageName = "CdmOnboarding",
-    dbms = connectionDetails$dbms,
-    warnOnMissingParameters = FALSE,
-    cdmDatabaseSchema = cdmDatabaseSchema
+  cdmSource <- executeQuery(
+    outputFolder = outputFolder,
+    sqlFileName = "get_cdm_source_table.sql",
+    connection = connection,
+    cdmDatabaseSchema = cdmDatabaseSchema,
+    successMessage = "CDM Source table successfully extracted"
   )
+  cdmSource <- cdmSource$result
+  if (is.null(cdmSource)) {
+    return(NULL)
+  }
 
-  errorReportFile <- file.path(outputFolder, "cdmSourceError.txt")
-  # connection outside of tryCatch, to get hard error if connection fails.
-  connection <- DatabaseConnector::connect(connectionDetails = connectionDetails)
-  cdmSource <- tryCatch({
-    cdmSource <- DatabaseConnector::querySql(connection = connection, sql = sql, errorReportFile = errorReportFile)
-    if (nrow(cdmSource) > 1) {
-      ParallelLogger::logWarn("Multiple records found in the cdm_source table. The first record is used.")
-      cdmSource <- cdmSource[1, ]
-    }
-    if (nrow(cdmSource) == 0) {
-      stop("No records found in the cdm_source table. Please populate the table.")
-    }
-    ParallelLogger::logInfo("> CDM Source table successfully extracted")
-    cdmSource
-  }, error = function(e) {
-    ParallelLogger::logError(sprintf(
-      "> CDM Source table could not be extracted, see %s for more details",
-      errorReportFile
-    ))
-    NULL
-  }, finally = {
-    DatabaseConnector::disconnect(connection = connection)
-    rm(connection)
-  })
+  if (nrow(cdmSource) > 1) {
+    ParallelLogger::logWarn("Multiple records found in the cdm_source table. The first record is used.")
+    cdmSource <- cdmSource[1, ]
+  }
+  if (nrow(cdmSource) == 0) {
+    stop("No records found in the cdm_source table. Please populate the table.")
+  }
 
   # Format as date
   cdmSource$CDM_RELEASE_DATE <- as.character(cdmSource$CDM_RELEASE_DATE)

@@ -23,17 +23,29 @@
 #' Generates the Appendix section for the Results Document
 #'
 #' @param doc officer document object to add the section to
-#' @param df Results object from \code{cdmOnboarding} vocabularyResults
+#' @param results Results object from \code{cdmOnboarding}
 #' @param optimized boolean indicating if the optimized queries were used
-generateAppendixSection <- function(doc, df, optimized) {
+generateAppendixSection <- function(doc, results, optimized) {
+  df <- results$vocabularyResults
   # vocabulary table counts
   if (!is.null(df$vocabularyCounts$result)) {
     df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
       arrange(desc(.data$COUNT))
+
+    if (!is.null(df$countConceptRecommended)) {
+      df$vocabularyCounts$result <- df$vocabularyCounts$result %>%
+        dplyr::bind_rows(
+          data.frame(
+            TABLENAME = "concept_recommended",
+            COUNT = df$countConceptRecommended
+          )
+        )
+    }
+
     doc <- doc %>%
-        officer::body_add_par("Vocabulary table counts", style = pkg.env$styles$heading2) %>%
-        my_table_caption("The number of records in all vocabulary tables.", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>% #nolint
-        my_body_add_table_runtime(df$vocabularyCounts)
+      officer::body_add_par("Vocabulary table counts", style = pkg.env$styles$heading2) %>%
+      my_table_caption("The number of records in all vocabulary tables.", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>% #nolint
+      my_body_add_table_runtime(df$vocabularyCounts)
   }
 
   # vocabularies table
@@ -46,5 +58,25 @@ generateAppendixSection <- function(doc, df, optimized) {
       my_body_add_table_runtime(df$conceptCounts)
   }
 
+  #Hashes
+  doc <- doc %>%
+    officer::body_add_par("Table hashes", style = pkg.env$styles$heading2)
+
+  if (!is.null(results$cdmHashByTable)) {
+    doc <- doc %>%
+      my_table_caption("MD5 Hashes of the CDM tables, as computed by CdmConnector::dataHashByTable using table names, row count, unique column and unique count.", sourceSymbol = pkg.env$sources$cdm) %>%
+      my_body_add_table(
+        results$cdmHashByTable %>% dplyr::mutate(
+          `Table` = .data$table_name,
+          `#Records` = .data$table_row_count,
+          `Unique Column` = .data$unique_column,
+          `#Unique` = .data$n_unique_values,
+          `Hash` = .data$table_hash,
+          `Duration` = prettyunits::pretty_sec(.data$compute_time_minutes * 60),
+          .keep = 'none'
+        )
+      )
+  }
+
   return(doc)
-}
+  }

@@ -2,7 +2,7 @@ test_that("Vocabulary Tables Checks with Optimize", {
   skip(message = "not used")
   vocabularyResults <- CdmOnboarding::vocabularyChecks(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
+    cdmDatabaseSchema = params$cdmSchema,
     cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder,
     optimize = TRUE

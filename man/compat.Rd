@@ -4,12 +4,10 @@
 \alias{compat}
 \title{Compatibility of CdmOnboarding results}
 \usage{
-compat(r, target_version = package_version("3.0"))
+compat(r)
 }
 \arguments{
 \item{r}{A list of results from CdmOnboarding.}
-
-\item{target_version}{The version to convert the results to, only v3 supported.}
 }
 \value{
 A list of results from CdmOnboarding, forwards compatible with v3.

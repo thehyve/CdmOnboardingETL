@@ -53,11 +53,11 @@ generatePerformanceSection <- function(doc, results) {
   #system detail
   doc <- doc %>%
     officer::body_add_par("System Information", style = pkg.env$styles$heading2) %>%
-    officer::body_add_par(paste0("Installed R version: ", df$sys_details$r_version$version.string)) %>%
-    officer::body_add_par(paste0("System CPU vendor: ", df$sys_details$cpu$vendor_id, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System CPU model: ", df$sys_details$cpu$model_name, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System CPU number of cores: ", df$sys_details$cpu$no_of_cores, collapse = ", ")) %>%
-    officer::body_add_par(paste0("System RAM: ", prettyunits::pretty_bytes(as.numeric(df$sys_details$ram, collapse = ", ")))) %>%
+    officer::body_add_par(paste0("Installed R version: ", df$systemDetails$r_version$version.string)) %>%
+    officer::body_add_par(paste0("System CPU vendor: ", df$systemDetails$cpu$vendor_id, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System CPU model: ", df$systemDetails$cpu$model_name, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System CPU number of cores: ", df$systemDetails$cpu$no_of_cores, collapse = ", ")) %>%
+    officer::body_add_par(paste0("System RAM: ", prettyunits::pretty_bytes(as.numeric(df$systemDetails$ram, collapse = ", ")))) %>%
     officer::body_add_par(paste0("DBMS: ", df$dmsVersion)) %>%
     officer::body_add_par(paste0("WebAPI version: ", results$webAPIversion)) %>%
     officer::body_add_par("")
@@ -81,10 +81,10 @@ generatePerformanceSection <- function(doc, results) {
 
   if (!is.null(df$cdmConnectorBenchmark$result)) {
     df$cdmConnectorBenchmark$result <- df$cdmConnectorBenchmark$result %>%
-      select(
+      mutate(
         `Task` = .data$task,
-        `Time taken (s)` = .data$time_taken_secs,
-        `Time taken (min)` = .data$time_taken_mins
+        `Duration` = prettyunits::pretty_sec(.data$time_taken_secs),
+        .keep = "none"
       )
     doc <- doc %>%
       my_table_caption("CDMConnector benchmark of the OMOP CDM tables.", sourceSymbol = pkg.env$sources$cdm) %>%
@@ -94,11 +94,11 @@ generatePerformanceSection <- function(doc, results) {
       officer::body_add_par("CDMConnector benchmark of the OMOP CDM tables could not be retrieved", style = pkg.env$styles$highlight)
   }
 
-  if (!is.null(results$cohortBenchmark)) {
-    doc <- generateCohortBenchmarkSection(doc, results$cohortBenchmark)
+  if (!is.null(df$cohortBenchmark)) {
+    doc <- generateCohortBenchmarkSection(doc, df$cohortBenchmark)
   } else {
     doc <- doc %>%
-      officer::body_add_par("Cohort Benchmark results are missing, runCohortBenchmark = FALSE?", style = pkg.env$styles$highlight)
+      officer::body_add_par("Cohort Benchmark results are missing", style = pkg.env$styles$highlight)
   }
 
   doc <- doc %>%
@@ -117,17 +117,18 @@ generatePerformanceSection <- function(doc, results) {
     indexOverview <- df$appliedIndexes$result %>%
       dplyr::mutate(actual = 1) %>%
       dplyr::mutate(type = substr(.data$INDEXNAME, 1, 3)) %>%
-      # Note: The join by does not accept the .data$ prefix
-      dplyr::full_join(expectedIndexes, by = join_by(TABLENAME, INDEXNAME, type)) %>%
+      # Note: The join_by by does not accept the .data$ prefix
+      dplyr::full_join(expectedIndexes,
+        by = dplyr::join_by("TABLENAME", "INDEXNAME", "type")
+      ) %>%
       dplyr::group_by(.data$TABLENAME, .data$type) %>%
       dplyr::summarize(
         n_indexes_applied = sum(.data$actual, na.rm = TRUE),
         n_indexes_expected = sum(.data$expected, na.rm = TRUE),
-        n_indexes_missing = sum(is.na(.data$actual), na.rm = TRUE)
       ) %>%
       tidyr::pivot_wider(
         names_from = .data$type,
-        values_from = c(.data$n_indexes_applied, .data$n_indexes_expected, .data$n_indexes_missing),
+        values_from = c(.data$n_indexes_applied, .data$n_indexes_expected),
         names_glue = "{.name}",  #_{.value}
         values_fill = 0,
         names_sort = TRUE
@@ -136,10 +137,8 @@ generatePerformanceSection <- function(doc, results) {
         .data$TABLENAME,
         `xpk - Applied` = .data$n_indexes_applied_xpk,
         `xpk - Expected` = .data$n_indexes_expected_xpk,
-        `xpk - Missing` = .data$n_indexes_missing_xpk,
         `idx - Applied` = .data$n_indexes_applied_idx,
         `idx - Expected` = .data$n_indexes_expected_idx,
-        `idx - Missing` = .data$n_indexes_missing_idx
       )
     indexTotals <- data.frame(TABLENAME  = "Total", t(colSums(indexOverview[, -1])))
     names(indexTotals) <- names(indexOverview)

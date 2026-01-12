@@ -13,6 +13,18 @@ con <- DBI::dbConnect(
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 )
 
+# Alternative1: Connecting using dsn, to be set up in database driver
+# con <- DBI::dbConnect(odbc::odbc(), "<your_spark_dsn>")
+
+# Alternative2: using user/password/server
+# con <- DBI::dbConnect(odbc::odbc(),
+#                       Driver   = "<name of the downloaded driver>",
+#                       Server   = "<your_spark_server>",
+#                       UID      = "<your_spark_user>",
+#                       PWD      = "<your_spark_user_password>",
+#                       Port     = 1433)
+
+
 cdm <- cdmFromCon(
   con,
   cdmSchema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
@@ -35,7 +47,7 @@ CDMConnector::cdmDisconnect(cdm)
 
 mappingLevels <- CdmOnboarding::getMappingLevel(dedResults)
 
-dedSummary <- list(
+dedResults <- list(
   result = dedResults$diagnosticsSummary,
   resultMappingLevel = mappingLevels,
   duration = duration,
@@ -44,5 +56,11 @@ dedSummary <- list(
 
 outputPath <- './'
 
-saveRDS(dedSummary, file.path(outputPath, "dedSummary.rds"))
-exportDedResults(outputPath)
+saveRDS(dedResults, file.path(outputPath, "dedSummary.rds"))
+
+# Optional, export to csv
+CdmOnboarding::exportDedResults(
+  results = readRDS(file.path(outputPath, "onboarding_results_<dbname>_<yyyymmdd>.rds")),
+  df_ded = dedResults,
+  outputFolder = outputPath
+)

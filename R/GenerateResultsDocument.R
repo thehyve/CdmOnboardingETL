@@ -136,7 +136,7 @@ generateResultsDocument <- function(results, outputFolder, authors) {
   doc <- doc %>%
     officer::body_add_par("Appendix", style = pkg.env$styles$heading1)
   if (!is.null(results$vocabularyResults)) {
-    doc <- generateAppendixSection(doc, results$vocabularyResults, optimized = counts_optimized)
+    doc <- generateAppendixSection(doc, results, optimized = counts_optimized)
   } else {
     doc <- doc %>%
       officer::body_add_par("Appendix could not be generated, runVocabularyChecks = FALSE?", style = pkg.env$styles$highlight)

@@ -27,32 +27,38 @@
 #' @param cdmSource CDM source object
 #' @param optimized boolean indicating if the optimized queries were used
 generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
-  # Pre-compute counts
-  personCount <- df$dataTablesCounts$result %>%
-    dplyr::filter(.data$TABLENAME == 'person') %>%
-    pull(.data$COUNT)
-  deathCount <- df$dataTablesCounts$result %>%
-    dplyr::filter(.data$TABLENAME == 'death') %>%
-    pull(.data$COUNT)
-  observationPeriodPersonCount <- df$dataTablesCounts$result %>%
-    dplyr::filter(.data$TABLENAME == 'observation_period') %>%
-    pull(.data$N_PERSONS)
+  personCount <- NA
+  overallMortality <- NA
+  if (!is.null(df$dataTablesCounts$result)) {
+    # Pre-compute counts
+    personCount <- df$dataTablesCounts$result %>%
+      dplyr::filter(.data$TABLENAME == 'person') %>%
+      pull(.data$COUNT)
+    deathCount <- df$dataTablesCounts$result %>%
+      dplyr::filter(.data$TABLENAME == 'death') %>%
+      pull(.data$COUNT)
+    observationPeriodPersonCount <- df$dataTablesCounts$result %>%
+      dplyr::filter(.data$TABLENAME == 'observation_period') %>%
+      pull(.data$N_PERSONS)
 
-  # Total records per table
-  df$dataTablesCounts$result <- df$dataTablesCounts$result %>%
-    arrange(desc(.data$COUNT)) %>%
-    mutate(
-      Table = .data$TABLENAME,
-      `#Records` = .data$COUNT,
-      `#Persons` = .data$N_PERSONS,
-      `%Persons` = prettyPc(.data$N_PERSONS / personCount * 100),
-      .keep = "none"  # do not display other columns
-    )
+    overallMortality <- round(deathCount / personCount * 100, 2)
 
-  doc <- doc %>%
-    officer::body_add_par("Record counts per OMOP CDM table", style = pkg.env$styles$heading2) %>%
-    my_table_caption("The number of records in all clinical data tables", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>%
-    my_body_add_table_runtime(df$dataTablesCounts, alignment = c('l', rep('r', 3)))
+    # Total records per table
+    df$dataTablesCounts$result <- df$dataTablesCounts$result %>%
+      arrange(desc(.data$COUNT)) %>%
+      mutate(
+        Table = .data$TABLENAME,
+        `#Records` = .data$COUNT,
+        `#Persons` = .data$N_PERSONS,
+        `%Persons` = prettyPc(.data$N_PERSONS / personCount * 100),
+        .keep = "none"  # do not display other columns
+      )
+
+    doc <- doc %>%
+      officer::body_add_par("Record counts per OMOP CDM table", style = pkg.env$styles$heading2) %>%
+      my_table_caption("The number of records in all clinical data tables", sourceSymbol = if (optimized) pkg.env$sources$system else pkg.env$sources$cdm) %>%
+      my_body_add_table_runtime(df$dataTablesCounts, alignment = c('l', rep('r', 3)))
+  }
 
   doc <- doc %>%
     officer::body_add_break() %>%
@@ -66,29 +72,26 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   recordsPerPersonPlot <- .recordsCountPlot(as.data.frame(df$recordsPerPerson$result), log_y_axis = TRUE)
   doc <- doc %>%
     officer::body_add_gg(recordsPerPersonPlot, height = 4) %>%
-    my_figure_caption("Number of records per person over time per OMOP data domain.", sourceSymbol = pkg.env$sources$achilles)
+    my_figure_caption("Number of records per person over time per OMOP data domain. Note: using analysis 110 as denominator as of v4.0 (instead of 117).", sourceSymbol = pkg.env$sources$achilles)
 
   # Mortality
-  overallMortality <- round(deathCount / personCount * 100, 2)
-
-  if (deathCount > 0) {
+  if (!is.null(df$totalRecords$result)) {
     totalDeath <- df$totalRecords$result %>%
       dplyr::filter(.data$SERIES_NAME %in% 'Death')
     totalDeathPlot <- .recordsCountPlot(as.data.frame(totalDeath), hide_legend = TRUE)
     doc <- doc %>%
-      officer::body_add_gg(totalDeathPlot, height = 4)
+      officer::body_add_gg(totalDeathPlot, height = 4) %>%
+      my_figure_caption(
+        sprintf(
+          "Number of deaths in each month. Overall mortality: %s%%.",
+          overallMortality
+        ),
+        sourceSymbol = pkg.env$sources$achilles
+      )
   } else {
     doc <- doc %>%
       officer::body_add_par("No death records found.", style = pkg.env$styles$highlight)
   }
-  doc <- doc %>%
-    my_figure_caption(
-      sprintf(
-        "Number of deaths in each month. Overall mortality: %s%%.",
-        overallMortality
-      ),
-      sourceSymbol = pkg.env$sources$achilles
-    )
 
   doc <- doc %>%
     officer::body_add_break() %>%
@@ -216,7 +219,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
   }
   doc <- doc %>%
     officer::body_add_par("Date Range", style = pkg.env$styles$heading2) %>%
-    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$achilles) %>% #nolint
+    my_table_caption("Minimum and maximum event start date in each table, within an observation period and at least 5 records. Floored to the nearest month.", sourceSymbol = pkg.env$sources$cdm) %>% #nolint
     my_body_add_table_runtime(
       df$dateRangeByTypeConcept,
       alignment = c('l', 'l', rep('r', ncol(df$dateRangeByTypeConcept$result) - 2))

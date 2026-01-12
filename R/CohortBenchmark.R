@@ -22,28 +22,9 @@
 
 
 #' Generate predefined set of cohorts
-#' @param connectionDetails An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema Fully qualified name of database schema that contains OMOP CDM schema.
-#'                          On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
-#' @param scratchDatabaseSchema Fully qualified name of database schema where temporary tables can be written.
-#' @returns list of DED diagnostics_summary and duration
-.runCohortBenchmark <- function(
-  connectionDetails,
-  cdmDatabaseSchema,
-  scratchDatabaseSchema
-) {
-  # Connect to the database with CDMConnector
-  connection <- .getCdmConnection(connectionDetails)
-
-  on.exit(.disconnectCdmConnection(connection))
-
-  cdm <- CDMConnector::cdmFromCon(
-    connection,
-    cdmSchema = cdmDatabaseSchema,
-    writeSchema = scratchDatabaseSchema,
-    .softValidation = TRUE
-  )
-
+#' @param cdm An R object of type \code{cdm_reference}
+#' @returns dataframe with the summarised results of the cohort benchmark
+.runCohortBenchmark <- function(cdm) {
   cohort_set_definition <- CDMConnector::readCohortSet(
     path = system.file("json", "cohorts", package = "CdmOnboarding", mustWork = TRUE)
   )
@@ -93,7 +74,7 @@
 
   data.frame(
     cohort_name = cohort_set_definition$cohort_name,
-    n_subject_bins = n_subject_bins,
+    n_subject_bins = as.character(n_subject_bins),
     duration = duration,
     error = error
   )

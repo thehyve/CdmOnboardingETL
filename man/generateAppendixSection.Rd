@@ -4,12 +4,12 @@
 \alias{generateAppendixSection}
 \title{Generates the Appendix section for the Results Document}
 \usage{
-generateAppendixSection(doc, df, optimized)
+generateAppendixSection(doc, results, optimized)
 }
 \arguments{
 \item{doc}{officer document object to add the section to}
 
-\item{df}{Results object from \code{cdmOnboarding} vocabularyResults}
+\item{results}{Results object from \code{cdmOnboarding}}
 
 \item{optimized}{boolean indicating if the optimized queries were used}
 }
