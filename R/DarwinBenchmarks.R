@@ -25,6 +25,9 @@
 #' @param cdm An R object of type \code{cdm_reference}
 #' @returns dataframe with the summarised results of the cohort benchmark
 .runCohortBenchmark <- function(cdm) {
+  ParallelLogger::logInfo("Starting execution of Cohort Benchmark")
+
+  start_time <- Sys.time()
   cohort_set_definition <- CDMConnector::readCohortSet(
     path = system.file("json", "cohorts", package = "CdmOnboarding", mustWork = TRUE)
   )
@@ -154,7 +157,7 @@
       CohortCharacteristics::benchmarkCohortCharacteristics(cdm$my_cohort)
     )
   }, error = function(e) {
-    ParallelLogger::logError("Execution of IncidencePrevalence Benchmark failed: ", e)
+    ParallelLogger::logError("Execution of CohortCharacteristics Benchmark failed: ", e)
     NULL
   })
 

@@ -29,7 +29,7 @@
 #' @details
 #' \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
 #'
-#' @param connectionDetails                An R object of type \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param connectionDetails                An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param cdmSchema    	                   Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param resultsSchema		                 Fully qualified name of database schema that holds the the Achilles results.
@@ -110,7 +110,7 @@ cdmOnboarding <- function(
   dqdJsonPath = NULL,
   optimize = FALSE
 ) {
-  checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
+  # checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
   checkmate::assertCharacter(databaseId, len = 1, any.missing = FALSE)
 
   connection <- DatabaseConnector::connect(connectionDetails)

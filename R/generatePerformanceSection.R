@@ -63,7 +63,7 @@ generatePerformanceSection <- function(doc, results) {
     officer::body_add_par("")
 
   doc <- doc %>%
-    officer::body_add_par("Query Performance", style = pkg.env$styles$heading2)
+    officer::body_add_par("Performance Benchmark", style = pkg.env$styles$heading2)
   if (!is.null(df$performanceBenchmark$result)) {
     n_relations <- df$performanceBenchmark$result
     benchmark_query_time <- df$performanceBenchmark$duration
@@ -102,8 +102,7 @@ generatePerformanceSection <- function(doc, results) {
   }
 
   if (!is.null(df$analyticsBenchmark$result)) {
-    r <- df$analyticsBenchmark$result
-    r$result <- r$result %>%
+    df$analyticsBenchmark$result <- df$analyticsBenchmark$result %>%
       mutate(
         `Package` = .data$package_name,
         `Task` = .data$group_level,
@@ -116,7 +115,7 @@ generatePerformanceSection <- function(doc, results) {
       )
     doc <- doc %>%
       my_table_caption("DARWIN analytics benchmark.", sourceSymbol = pkg.env$sources$cdm) %>%
-      my_body_add_table_runtime(df$cdmConnectorBenchmark)
+      my_body_add_table_runtime(df$analyticsBenchmark)
   } else {
     doc <- doc %>%
       officer::body_add_par("DARWIN analytics benchmark could not be retrieved", style = pkg.env$styles$highlight)
