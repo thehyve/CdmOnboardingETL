@@ -101,6 +101,27 @@ generatePerformanceSection <- function(doc, results) {
       officer::body_add_par("Cohort Benchmark results are missing", style = pkg.env$styles$highlight)
   }
 
+  if (!is.null(df$analyticsBenchmark$result)) {
+    r <- df$analyticsBenchmark$result
+    r$result <- r$result %>%
+      mutate(
+        `Package` = .data$package_name,
+        `Task` = .data$group_level,
+        `Time taken` = case_when(
+          .data$estimate_name == 'time_seconds' ~ prettyunits::pretty_sec(as.numeric(.data$estimate_value)),
+          .data$estimate_name == 'time_taken_minutes' ~ prettyunits::pretty_sec(as.numeric(.data$estimate_value)*60),
+          .default = .data$estimate_value
+        ),
+        .keep = "none"
+      )
+    doc <- doc %>%
+      my_table_caption("DARWIN analytics benchmark.", sourceSymbol = pkg.env$sources$cdm) %>%
+      my_body_add_table_runtime(df$cdmConnectorBenchmark)
+  } else {
+    doc <- doc %>%
+      officer::body_add_par("DARWIN analytics benchmark could not be retrieved", style = pkg.env$styles$highlight)
+  }
+
   doc <- doc %>%
     officer::body_add_par("Applied indexes", style = pkg.env$styles$heading2)
   if (!is.null(df$appliedIndexes$result)) {

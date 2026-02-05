@@ -97,6 +97,13 @@ performanceChecks <- function(
     NULL
   })
 
+  analyticsBenchmark <- tryCatch({
+    .analyticsBenchmarks(cdm)
+  }, error = function(e) {
+    ParallelLogger::logError("Execution of Analytics Benchmarks failed: ", e)
+    NULL
+  })
+
   # Applied indexes
   appliedIndexes <- NULL
   if (connection@dbms == "postgresql") {
@@ -138,6 +145,7 @@ performanceChecks <- function(
     performanceBenchmark = performanceBenchmark,
     cdmConnectorBenchmark = cdmConnectorBenchmark,
     cohortBenchmark = cohortBenchmark,
+    analyticsBenchmark = analyticsBenchmark,
     appliedIndexes = appliedIndexes,
     systemDetails = systemDetails,
     dmsVersion = dmsVersion,
@@ -329,19 +337,4 @@ getDARWINpackages <- function() {
     return(content$version)
   }
   return(NULL)
-}
-
-
-#' Run Benchmark CDMConnector
-#' @param cdm An R object of type \code{cdm_reference}
-#' @returns list of DED diagnostics_summary and duration
-.runBenchmarkCdmConnector <- function(cdm) {
-  ParallelLogger::logInfo("Starting execution of CDMConnector Benchmark")
-
-  start_time <- Sys.time()
-  benchmarkResults <- CDMConnector::benchmarkCDMConnector(cdm)
-  duration <- as.numeric(difftime(Sys.time(), start_time), units = "secs")
-
-  # Return result with duration
-  list(result = benchmarkResults, duration = duration)
 }

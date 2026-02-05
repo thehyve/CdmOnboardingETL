@@ -55,7 +55,8 @@
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
 #' \donttest{
-#' connection <- DatabaseConnector::createDbiConnectionDetails(
+#' # Postgres
+#' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
 #'   dbms = "postgresql",
 #'   drv = RPostgres::Postgres(),
 #'   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
@@ -63,8 +64,20 @@
 #'   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
 #'   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 #' )
+#' # SQL Server
+#' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+#'   dbms = "sql server",
+#'   drv = odbc::odbc(),
+#'   Driver = "ODBC Driver 18 for SQL Server",
+#'   Server = Sys.getenv("CDM5_SQL_SERVER_SERVER"),
+#'   Database = Sys.getenv("CDM5_SQL_SERVER_CDM_DATABASE"),
+#'   UID = Sys.getenv("CDM5_SQL_SERVER_USER"),
+#'   PWD = Sys.getenv("CDM5_SQL_SERVER_PASSWORD"),
+#'   TrustServerCertificate = 'yes',
+#'   Port = Sys.getenv("DB_PORT")
+#' )
 #' results <- CdmOnboarding::cdmOnboarding(
-#'   connection = connection,
+#'   connectionDetails = connectionDetails,
 #'   cdmSchema = Sys.getenv("CDM_SCHEMA"),
 #'   resultsSchema = Sys.getenv("RESULTS_SCHEMA"),
 #'   databaseId = Sys.getenv("DATABASE_ID"),
