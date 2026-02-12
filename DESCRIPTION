@@ -1,24 +1,21 @@
 Package: CdmOnboarding
 Title: Generate Onboarding Report on an OMOP CDM Instance
-Version: 4.0.0.900
-Authors@R: 
-  c(person(given = "Peter",
-           family = "Rijnbeek",
-           role = "aut",
-           email = "p.rijnbeek@erasmusmc.nl",
-           comment = c(ORCID = "https://orcid.org/0000-0003-0621-1979")),
-    person(given = "Maxim",
-           family = "Moinat",
+Version: 4.1.0
+Authors@R:
+  c(person("Maxim", "Moinat",
            role = c("aut", "cre"),
-           email = "m.moinat@erasmusmc.nl",
+           email = "m.moinat@darwin-eu.org",
            comment = c(ORCID = "https://orcid.org/0000-0001-8473-2433")),
-    person(given = "Anne",
-           family = "van Winzum",
+    person("Peter", "Rijnbeek",
+           role = "aut",
+           email = "p.rijnbeek@darwin-eu.org",
+           comment = c(ORCID = "https://orcid.org/0000-0003-0621-1979")),
+    person("Anne", "van Winzum",
            role = "ctb",
-           email = "anne@thehyve.nl"),
+           email = "a.vanwinzum@darwin-eu.org"),
     person("Erasmus MC", role = c("cph"))
    )
-Maintainer: Maxim Moinat <m.moinat@erasmusmc.nl>
+Maintainer: Maxim Moinat <m.moinat@darwin-eu.org>
 Description: The goal the CdmOnboarding package is to generate a report to provide insight into the completeness, transparency and quality of the records in an OMOP CDM instance. It connects to the OMOP CDM instance in a database and outputs a Word document.
 License: Apache License (>= 2)
 URL: https://github.com/darwin-eu/CdmOnboarding
@@ -33,8 +30,12 @@ Imports:
   DatabaseConnector (>= 7.0.0),
   ParallelLogger,
   SqlRender,
-  DrugExposureDiagnostics (>= 1.1.0),
   CDMConnector (>= 2.2.0),
+  DrugExposureDiagnostics (>= 1.1.5),
+  CodelistGenerator,
+  CohortCharacteristics,
+  DrugUtilisation,
+  IncidencePrevalence,
   benchmarkme,
   prettyunits,
   dplyr,

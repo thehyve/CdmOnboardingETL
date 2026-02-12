@@ -12,7 +12,7 @@ The DARWIN EU Coordination Center (CC) is resposonsible for building a data netw
 
 The goal of the onboarding report is to provide insight into the completeness, transparency and quality of the performed Extraction Transform, and Load (ETL) process and the readiness of the data partner to be onboarded in the DARWIN EU® data network and participate in research studies.
 
-An example of an onboarding report for a OMOP Synthea database can be found in [extras/CdmOnboarding_Synthea20k-vx.x.x.docx](https://github.com/darwin-eu/CdmOnboarding/blob/main/extras).
+An example of an onboarding report for a OMOP Synthea database can be found in [extras/CdmOnboarding_Synthea20k-vx.x.x.docx](https://github.com/darwin-eu/CdmOnboarding/tree/main/extras).
 
 Main repository on [DARWIN-EU/CdmOnboarding](https://github.com/darwin-eu/CdmOnboarding).
 
@@ -76,7 +76,6 @@ Requires R. Some of the packages used by CdmOnboarding require Java.
 1. See the instructions [here](https://ohdsi.github.io/Hades/rSetup.html) for configuring your R environment, including Java.
 
 2. Use the following commands to download and install CdmOnboarding:
-
 ```R
 remotes::install_github("DARWIN-EU/CdmOnboarding")
 ```
@@ -91,22 +90,17 @@ However, the following Achilles analyses are required for CdmOnboarding to creat
 `analysisIds <- c(0, 105, 110, 111, 113, 117, 213, 220, 420, 502, 620, 720, 820, 920, 1020, 1820, 2102, 2120, 203, 403, 603, 703, 803, 903, 920, 1003, 1020, 1313, 1320, 1411, 1803, 1820, 213, 1313)`
 
 # User documentation
-PDF versions of the documentation are available:
-* Package manual: [Link](https://github.com/darwin-eu/CdmOnboarding/blob/main/extras/CdmOnboarding.pdf)
 * CodeToRun Example: [Link](https://github.com/darwin-eu/CdmOnboarding/blob/main/extras/CodeToRun.R)
-* Report Example: [Link](https://github.com/darwin-eu/CdmOnboarding/tree/main/extras)
+* Report Example foudn in: [Link](https://github.com/darwin-eu/CdmOnboarding/tree/main/extras)
 
 # Support and contributing
 This package is maintained by the Darwin EU Coordination Centre as part of its quality control procedures.
-We use the <a href="https://github.com/darwin-eu/CdmOnboarding/issues">GitHub issue tracker</a> for all bugs/issues/enhancements/questions/feedback
+We use the [GitHub issue tracker](https://github.com/darwin-eu/CdmOnboarding/issues) for all bugs/issues/enhancements/questions/feedback.
 Additions are welcome through pull requests. 
 We suggest to first create an issue and discuss with the maintainer before implementing additional functionality.
 
 # License
 CdmOnboarding is licensed under Apache License 2.0
-
-# Development
-CdmOnboarding is being developed in R Studio.
 
 # Acknowledgements
 - The package is build upon the CdmInspection R package used and developed by The European Health Data & Evidence Network has received funding from the Innovative Medicines Initiative 2 Joint Undertaking (JU) under grant agreement No 806968. The JU receives support from the European Union’s Horizon 2020 research 
