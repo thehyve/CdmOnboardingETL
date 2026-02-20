@@ -491,7 +491,7 @@ cdmOnboarding <- function(
 #' \code{.bundleResults} creates a zip file with results in the outputFolder
 #' @param outputFolder  Folder to store the results
 #' @param databaseId    ID of your database, this will be used as subfolder for the results.
-#' @value The path to the created zip file containing the results
+#' @return The path to the created zip file containing the results
 .bundleResults <- function(outputFolder, databaseId) {
   zipName <- file.path(outputFolder, sprintf("Results_Onboarding_%s_%s.zip", databaseId, format(Sys.time(), "%Y%m%d")))
   files <- list.files(outputFolder, "*.*", full.names = TRUE, recursive = TRUE)

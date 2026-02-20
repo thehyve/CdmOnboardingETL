@@ -181,6 +181,8 @@ performanceChecks <- function(
 
 #' Returns data frame of Version, LibPath and URL.
 #' More efficient than using packInfo, as it only retrieves info for the packages specified.
+#' @param packageNames character vector of package names to retrieve version information for.
+#' @return data frame with columns Package, Version, LibPath and URL.
 .getPackacheVersions <- function(packageNames) {
   result <- c()
   for (pkg in packageNames) {

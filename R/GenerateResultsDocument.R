@@ -48,7 +48,7 @@ pkg.env$sources <- list(
 #' @param results             Results object from \code{cdmOnboarding}
 #' @param outputFolder        Folder to store the results
 #' @param authors             List of author names to be added in the document
-#' @value Writes to outputFolder a Word document with the results of the checks.
+#' @return Writes to outputFolder a Word document with the results of the checks.
 #' @export
 generateResultsDocument <- function(results, outputFolder, authors) {
   # New document from the template

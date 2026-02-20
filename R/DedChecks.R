@@ -102,7 +102,7 @@ getMappingLevel <- function(dedResults) {
 
 #' Returns data frame with concept_id and concept_name of drug ingredients
 #' used for the DrugExposureDiagnostics check
-#' @value data.frame ingredient concept_id and concept_name
+#' @return data.frame ingredient concept_id and concept_name
 #' @export
 getDedIngredients <- function() {
   dedIngredients <- data.frame(
