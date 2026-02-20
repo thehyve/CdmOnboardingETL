@@ -180,7 +180,7 @@ cdmOnboarding <- function(
   }
 
   tryCatch({
-    bundledResultsLocation <- bundleResults(outputFolder, databaseId)
+    bundledResultsLocation <- .bundleResults(outputFolder, databaseId)
     ParallelLogger::logInfo("> All generated CDM Onboarding results are bundled for sharing at: ", bundledResultsLocation)
   }, error = function(e) {
     ParallelLogger::logWarn("> Failed to bundle CDM Onboarding results, no zip bundle has been created: ", e)
@@ -488,11 +488,11 @@ cdmOnboarding <- function(
 #' Bundles the results in a zip file
 #'
 #' @description
-#' \code{bundleResults} creates a zip file with results in the outputFolder
+#' \code{.bundleResults} creates a zip file with results in the outputFolder
 #' @param outputFolder  Folder to store the results
 #' @param databaseId    ID of your database, this will be used as subfolder for the results.
-#' @export
-bundleResults <- function(outputFolder, databaseId) {
+#' @value The path to the created zip file containing the results
+.bundleResults <- function(outputFolder, databaseId) {
   zipName <- file.path(outputFolder, sprintf("Results_Onboarding_%s_%s.zip", databaseId, format(Sys.time(), "%Y%m%d")))
   files <- list.files(outputFolder, "*.*", full.names = TRUE, recursive = TRUE)
   oldWd <- setwd(outputFolder)

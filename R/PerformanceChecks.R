@@ -127,14 +127,14 @@ performanceChecks <- function(
   }
 
   # Installed Packages
-  packinfo <- as.data.frame(installed.packages(fields = c("URL")))
-  packinfo <- packinfo[, c("Package", "Version", "LibPath", "URL")]
+  hadesPackages <- .getHADESpackages()
+  hadesPackageVersions <- .getPackacheVersions(hadesPackages)
 
-  hadesPackages <- getHADESpackages()
-  hadesPackageVersions <- packinfo[packinfo$Package %in% hadesPackages, ]
+  darwinPackages <- .getDARWINpackages()
+  darwinPackageVersions <- .getPackacheVersions(darwinPackages)
 
-  darwinPackages <- getDARWINpackages()
-  darwinPackageVersions <- packinfo[packinfo$Package %in% darwinPackages, ]
+  # Find version of darwinPackages installed and add in data frame
+  vapply(darwinPackages, packageDescription, fields = c("Package", "Version", "URL"))
 
   # DBMS version
   dmsVersion <- .getDbmsVersion(connection, outputFolder)
@@ -158,54 +158,59 @@ performanceChecks <- function(
 #' Hard coded list of HADES packages that CdmOnboarding checks against.
 #' Does NOT update automatically when new HADES packages are released.
 #' @return character vector with HADES package names
-#' @export
-getHADESpackages <- function() {
+.getHADESpackages <- function() {
   ## To update the HADES package list:
   # packageListUrl <- "https://raw.githubusercontent.com/OHDSI/Hades/main/extras/packages.csv" #nolint
   # packageList <- read.table(packageListUrl, sep = ",", header = TRUE) #nolint
   # packages <- packageList$name #nolint
   # dump("packages", "") #nolint
   c(
-    "CohortMethod", "SelfControlledCaseSeries", "SelfControlledCohort",
-    "EvidenceSynthesis", "PatientLevelPrediction", "DeepPatientLevelPrediction",
-    "EnsemblePatientLevelPrediction", "Characterization", "CohortIncidence",
-    "Capr", "CirceR", "CohortGenerator", "PhenotypeLibrary", "CohortDiagnostics",
-    "PheValuator", "CohortExplorer", "Keeper", "Achilles", "DataQualityDashboard",
-    "EmpiricalCalibration", "MethodEvaluation", "Andromeda", "BigKnn",
-    "BrokenAdaptiveRidge", "Cyclops", "DatabaseConnector", "Eunomia",
-    "FeatureExtraction", "Hydra", "IterativeHardThresholding", "OhdsiSharing",
-    "OhdsiShinyModules", "ParallelLogger", "ResultModelManager",
-    "ROhdsiWebApi", "ShinyAppBuilder", "SqlRender"
+    "CohortMethod", "SelfControlledCaseSeries", "SelfControlledCohort", 
+    "EvidenceSynthesis", "PatientLevelPrediction", "DeepPatientLevelPrediction", 
+    "EnsemblePatientLevelPrediction", "Characterization", "CohortIncidence", 
+    "TreatmentPatterns", "Capr", "CirceR", "CohortGenerator", "PhenotypeLibrary", 
+    "CohortDiagnostics", "PheValuator", "CohortExplorer", "Keeper", 
+    "Achilles", "DataQualityDashboard", "EmpiricalCalibration", "MethodEvaluation", 
+    "Andromeda", "BigKnn", "BrokenAdaptiveRidge", "Cyclops", "DatabaseConnector", 
+    "Eunomia", "FeatureExtraction", "IterativeHardThresholding", 
+    "OhdsiSharing", "OhdsiShinyModules", "ParallelLogger", "ResultModelManager", 
+    "ROhdsiWebApi", "OhdsiShinyAppBuilder", "Strategus", "SqlRender", 
+    "OhdsiReportGenerator", "Hydra", "ShinyAppBuilder"
   )
-  # cran = c(
-  #     "SqlRender", "DatabaseConnector", "DatabaseConnectorJars"
-  #  )
+}
+
+#' Returns data frame of Version, LibPath and URL.
+#' More efficient than using packInfo, as it only retrieves info for the packages specified.
+.getPackacheVersions <- function(packageNames) {
+  result <- c()
+  for (pkg in packageNames) {
+    p <- suppressWarnings(packageDescription(pkg, fields = c("Package", "Version", "URL")))
+    if(length(p) > 1) {
+      p['LibPath'] <- find.package('DataQualityDashboard')
+      result <- rbind(
+        result,
+        unlist(p[c("Package", "Version", "LibPath", "URL")])
+      )
+    } 
+  }
+  return(data.frame(result))
 }
 
 #' Hard coded list of DARWIN EU® packages that CdmOnboarding checks against.
 #' @return character vector with DARWIN EU® package names
-#' @export
-getDARWINpackages <- function() {
+.getDARWINpackages <- function() {
   ## To update the DARWIN package list:
-  # packageListUrl <- "https://raw.githubusercontent.com/mvankessel-EMC/DependencyReviewerWhitelists/main/darwin.csv" #nolint
+  # packageListUrl <- "https://raw.githubusercontent.com/darwin-eu-dev/PackagesStatusPage/refs/heads/main/app/packages.csv" #nolint
   # packageList <- read.table(packageListUrl, sep = ",", header = TRUE) #nolint
-  # packages <- packageList[packageList$version == '*', 'package'] %>% #nolint
-  #             gsub("darwin-eu-dev/", "", x = _) %>% #nolint
-  #             gsub("darwin-eu/", "", x = _) %>% #nolint
-  #             union(c('CdmOnboarding', 'DashboardExport')) #nolint
+  # packages <- packageList |> dplyr::select(name) |> unique() |> unlist() |> as.character()
   # dump("packages", "") #nolint
   c(
-    "PatientProfiles", "CDMConnector", "PaRe", "IncidencePrevalence",
-    "DrugUtilisation", "DrugExposureDiagnostics", "TreatmentPatterns",
-    "CodelistGenerator", "CohortSurvival", "OMOPGenerics", "ReportGenerator",
-    "CdmOnboarding", "DashboardExport"
+    "PatientProfiles", "CohortCharacteristics", "IncidencePrevalence", 
+    "TreatmentPatterns", "DrugUtilisation", "CohortSurvival", "omopgenerics", 
+    "PaRe", "CDMConnector", "CodelistGenerator", "DashboardExport", 
+    "visOmopResults", "DrugExposureDiagnostics", "CdmOnboarding", 
+    "ReportGenerator", "DarwinShinyModules"
   )
-  # cran = c(
-  #     "CdmConnector", "PaRe",
-  #     "DrugUtilisation", "DrugExposureDiagnostics",
-  #     "IncidencePrevalence", "PatientProfiles",
-  #     "CodelistGenerator"
-  #   )
 }
 
 .getExpectedIndexes <- function(cdmVersion) {

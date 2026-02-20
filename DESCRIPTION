@@ -1,5 +1,5 @@
 Package: CdmOnboarding
-Title: Generate Onboarding Report on an OMOP CDM Instance
+Title: Generate Onboarding Report for the OMOP Common Data Model
 Version: 4.1.0
 Authors@R:
   c(person("Maxim", "Moinat",
@@ -16,7 +16,10 @@ Authors@R:
     person("Erasmus MC", role = c("cph"))
    )
 Maintainer: Maxim Moinat <m.moinat@darwin-eu.org>
-Description: The goal the CdmOnboarding package is to generate a report to provide insight into the completeness, transparency and quality of the records in an OMOP CDM instance. It connects to the OMOP CDM instance in a database and outputs a Word document.
+Description: Generates a report for observational health data in the 
+  Observational Medical Outcomes Partnership (OMOP) Common Data Model format.
+  The report, a 'Word' document, provides insight into the completeness, transparency and quality.
+  More information can be found at <https://ohdsi-europe.org/images/symposium-2024/Posters/OHDSIEU2024_DARWINEU_CDMOnboarding_Poster%20-%20Sofia%20Bazakou.pdf>.
 License: Apache License (>= 2)
 URL: https://github.com/darwin-eu/CdmOnboarding
 BugReports: https://github.com/darwin-eu/CdmOnboarding/issues
