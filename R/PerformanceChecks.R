@@ -148,7 +148,6 @@ performanceChecks <- function(
     appliedIndexes = appliedIndexes,
     systemDetails = systemDetails,
     dmsVersion = dmsVersion,
-    packinfo = packinfo,
     hadesPackageVersions = hadesPackageVersions,
     darwinPackageVersions = darwinPackageVersions
   )
