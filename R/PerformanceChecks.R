@@ -105,6 +105,7 @@ performanceChecks <- function(
   })
 
   # Applied indexes
+  ParallelLogger::logError("Extracting applied indexes")
   appliedIndexes <- NULL
   if (connection@dbms == "postgresql") {
     appliedIndexes <- executeQuery(
@@ -127,14 +128,12 @@ performanceChecks <- function(
   }
 
   # Installed Packages
+  ParallelLogger::logError("Retrieving HADES and DARWIN package versions")
   hadesPackages <- .getHADESpackages()
   hadesPackageVersions <- .getPackacheVersions(hadesPackages)
 
   darwinPackages <- .getDARWINpackages()
   darwinPackageVersions <- .getPackacheVersions(darwinPackages)
-
-  # Find version of darwinPackages installed and add in data frame
-  vapply(darwinPackages, packageDescription, fields = c("Package", "Version", "URL"))
 
   # DBMS version
   dmsVersion <- .getDbmsVersion(connection, outputFolder)
