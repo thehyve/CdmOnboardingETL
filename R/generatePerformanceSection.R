@@ -28,9 +28,9 @@ generatePerformanceSection <- function(doc, results) {
   df <- results$performanceResults
   # Installed packages
   allPackages <- data.frame(
-    Package = c(getHADESpackages(), getDARWINpackages()),
+    Package = c(.getHADESpackages(), .getDARWINpackages()),
     Version = "",
-    Organisation = c(rep("OHDSI HADES", length(getHADESpackages())), rep("DARWIN EU\u00AE", length(getDARWINpackages())))
+    Organisation = c(rep("OHDSI HADES", length(.getHADESpackages())), rep("DARWIN EU\u00AE", length(.getDARWINpackages())))
   )
 
   packageVersions <- dplyr::union(df$hadesPackageVersions, df$darwinPackageVersions) %>%
