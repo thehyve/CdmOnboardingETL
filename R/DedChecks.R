@@ -1,6 +1,6 @@
 # @file DedChecks
 #
-# Copyright 2023 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -46,8 +46,8 @@
   # Caused by error:
   # ! Failed to prepare query : ERROR:  syntax error at or near ","
   # LINE 1: SELECT 1.*, route, concept_name AS ingredient_name
-  drugExposureDiagnostics <- tryCatch({
-    dedResults <- DrugExposureDiagnostics::executeChecks(
+  dedResults <- tryCatch({
+    DrugExposureDiagnostics::executeChecks(
       cdm = cdm,
       ingredients = dedIngredients$concept_id,
       checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
@@ -102,6 +102,7 @@ getMappingLevel <- function(dedResults) {
 
 #' Returns data frame with concept_id and concept_name of drug ingredients
 #' used for the DrugExposureDiagnostics check
+#' @return data.frame ingredient concept_id and concept_name
 #' @export
 getDedIngredients <- function() {
   dedIngredients <- data.frame(

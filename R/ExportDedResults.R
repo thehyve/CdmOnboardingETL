@@ -1,6 +1,6 @@
 # @file ExportDedResults.R
 #
-# Copyright 2024 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -22,6 +22,7 @@
 #' Export DrugExposureDiagnostics results to csv file in same folder as input file path
 #'
 #' @param path path to the CdmOnboarding .rds results file, output is written to the same folder
+#' @return Writes to path a csv file with the DrugExposureDiagnostics summary results
 #' @export
 exportDedResultsFromPath <- function(
   path
@@ -36,6 +37,7 @@ exportDedResultsFromPath <- function(
 #' @param results results object from \code{cdmOnboarding}
 #' @param df_ded optional dataframe with ded results, if NULL will use results$drugExposureDiagnostics
 #' @param outputFolder folder to store the results
+#' @return Writes to outputFolder a csv file with the DrugExposureDiagnostics summary results
 #' @export
 exportDedResults <- function(
   results,

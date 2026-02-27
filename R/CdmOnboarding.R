@@ -1,6 +1,6 @@
 # @file CdmOnboarding
 #
-# Copyright 2024 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -29,7 +29,7 @@
 #' @details
 #' \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
 #'
-#' @param connectionDetails                An R object of type \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param connectionDetails                An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
 #' @param cdmSchema    	                   Fully qualified name of database schema that contains OMOP CDM schema.
 #'                                         On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
 #' @param resultsSchema		                 Fully qualified name of database schema that holds the the Achilles results.
@@ -55,7 +55,8 @@
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
 #' \donttest{
-#' connection <- DatabaseConnector::createDbiConnectionDetails(
+#' # Postgres
+#' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
 #'   dbms = "postgresql",
 #'   drv = RPostgres::Postgres(),
 #'   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
@@ -63,8 +64,20 @@
 #'   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
 #'   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 #' )
+#' # SQL Server
+#' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+#'   dbms = "sql server",
+#'   drv = odbc::odbc(),
+#'   Driver = "ODBC Driver 18 for SQL Server",
+#'   Server = Sys.getenv("CDM5_SQL_SERVER_SERVER"),
+#'   Database = Sys.getenv("CDM5_SQL_SERVER_CDM_DATABASE"),
+#'   UID = Sys.getenv("CDM5_SQL_SERVER_USER"),
+#'   PWD = Sys.getenv("CDM5_SQL_SERVER_PASSWORD"),
+#'   TrustServerCertificate = 'yes',
+#'   Port = Sys.getenv("DB_PORT")
+#' )
 #' results <- CdmOnboarding::cdmOnboarding(
-#'   connection = connection,
+#'   connectionDetails = connectionDetails,
 #'   cdmSchema = Sys.getenv("CDM_SCHEMA"),
 #'   resultsSchema = Sys.getenv("RESULTS_SCHEMA"),
 #'   databaseId = Sys.getenv("DATABASE_ID"),
@@ -97,7 +110,7 @@ cdmOnboarding <- function(
   dqdJsonPath = NULL,
   optimize = FALSE
 ) {
-  checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
+  # checkmate::assertClass(connectionDetails, "DbiConnectionDetails")
   checkmate::assertCharacter(databaseId, len = 1, any.missing = FALSE)
 
   connection <- DatabaseConnector::connect(connectionDetails)
@@ -109,12 +122,24 @@ cdmOnboarding <- function(
     }
   })
 
-  cdm <- CDMConnector::cdmFromCon(
-    con = connection,
-    cdmSchema = cdmSchema,
-    writeSchema = writeSchema,
-    .softValidation = TRUE
-  )
+  # If class dbi, then use @dbiConnection
+  if (class(connection) == 'DatabaseConnectorDbiConnection') {
+    cdm <- CDMConnector::cdmFromCon(
+      con = connection@dbiConnection,
+      cdmSchema = cdmSchema,
+      writeSchema = writeSchema,
+      .softValidation = TRUE
+    )
+  } else {
+    cdm <- CDMConnector::cdmFromCon(
+      con = connection,
+      cdmSchema = cdmSchema,
+      writeSchema = writeSchema,
+      .softValidation = TRUE
+    )
+  }
+
+
 
   results <- .execute(
     connection = connection,
@@ -167,7 +192,7 @@ cdmOnboarding <- function(
   }
 
   tryCatch({
-    bundledResultsLocation <- bundleResults(outputFolder, databaseId)
+    bundledResultsLocation <- .bundleResults(outputFolder, databaseId)
     ParallelLogger::logInfo("> All generated CDM Onboarding results are bundled for sharing at: ", bundledResultsLocation)
   }, error = function(e) {
     ParallelLogger::logWarn("> Failed to bundle CDM Onboarding results, no zip bundle has been created: ", e)
@@ -475,11 +500,11 @@ cdmOnboarding <- function(
 #' Bundles the results in a zip file
 #'
 #' @description
-#' \code{bundleResults} creates a zip file with results in the outputFolder
+#' \code{.bundleResults} creates a zip file with results in the outputFolder
 #' @param outputFolder  Folder to store the results
 #' @param databaseId    ID of your database, this will be used as subfolder for the results.
-#' @export
-bundleResults <- function(outputFolder, databaseId) {
+#' @return The path to the created zip file containing the results
+.bundleResults <- function(outputFolder, databaseId) {
   zipName <- file.path(outputFolder, sprintf("Results_Onboarding_%s_%s.zip", databaseId, format(Sys.time(), "%Y%m%d")))
   files <- list.files(outputFolder, "*.*", full.names = TRUE, recursive = TRUE)
   oldWd <- setwd(outputFolder)

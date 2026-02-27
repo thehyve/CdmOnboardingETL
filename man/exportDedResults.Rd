@@ -13,6 +13,9 @@ exportDedResults(results, df_ded = NULL, outputFolder = getwd())
 
 \item{outputFolder}{folder to store the results}
 }
+\value{
+Writes to outputFolder a csv file with the DrugExposureDiagnostics summary results
+}
 \description{
 Export DrugExposureDiagnostics results to csv file
 }

@@ -28,7 +28,7 @@ cdmOnboarding(
 )
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connectionDetails}{An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.}
 
 \item{cdmSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.}
@@ -83,7 +83,8 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 }
 \examples{
 \donttest{
-connection <- DatabaseConnector::createDbiConnectionDetails(
+# Postgres
+connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
   dbms = "postgresql",
   drv = RPostgres::Postgres(),
   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
@@ -91,14 +92,27 @@ connection <- DatabaseConnector::createDbiConnectionDetails(
   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 )
-
+# SQL Server
+connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+  dbms = "sql server",
+  drv = odbc::odbc(),
+  Driver = "ODBC Driver 18 for SQL Server",
+  Server = Sys.getenv("CDM5_SQL_SERVER_SERVER"),
+  Database = Sys.getenv("CDM5_SQL_SERVER_CDM_DATABASE"),
+  UID = Sys.getenv("CDM5_SQL_SERVER_USER"),
+  PWD = Sys.getenv("CDM5_SQL_SERVER_PASSWORD"),
+  TrustServerCertificate = 'yes',
+  Port = Sys.getenv("DB_PORT")
+)
 results <- CdmOnboarding::cdmOnboarding(
-  connection = connection,
+  connectionDetails = connectionDetails,
   cdmSchema = Sys.getenv("CDM_SCHEMA"),
   resultsSchema = Sys.getenv("RESULTS_SCHEMA"),
   databaseId = Sys.getenv("DATABASE_ID"),
   authors = authors,
   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 )
+unlink("output", recursive = TRUE, force = TRUE)
+
 }
 }

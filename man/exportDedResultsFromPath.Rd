@@ -9,6 +9,9 @@ exportDedResultsFromPath(path)
 \arguments{
 \item{path}{path to the CdmOnboarding .rds results file, output is written to the same folder}
 }
+\value{
+Writes to path a csv file with the DrugExposureDiagnostics summary results
+}
 \description{
 Export DrugExposureDiagnostics results to csv file in same folder as input file path
 }

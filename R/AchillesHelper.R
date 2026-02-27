@@ -1,6 +1,6 @@
 # @file AchillesHelper.R
 #
-# Copyright 2024 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -22,7 +22,7 @@
 .checkAchillesTablesExist <- function(connection, resultsDatabaseSchema) {
   resultsTables <- CDMConnector::listTables(connection, resultsDatabaseSchema)
   requiredAchillesTables <- c("achilles_analysis", "achilles_results", "achilles_results_dist")
-  achillesTablesExist <- requiredAchillesTables %in% resultsTables
+  achillesTablesExist <- requiredAchillesTables %in% tolower(resultsTables)
 
   if (!all(achillesTablesExist)) {
     ParallelLogger::logWarn(

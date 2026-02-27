@@ -3,7 +3,6 @@ path <- readline("Enter the path where CdmOnboarding results are: ")
 
 rds <- list.files(path, '.rds')
 results <- readRDS(file.path(path, rds))
-results <- readRDS(path)
 authors <- c('-')
 
 # Optional, add separate DED results
@@ -14,6 +13,7 @@ results$drugExposureDiagnostics <- ded_results
 
 if (FALSE) {
   options(error = browser)
+  # remotes::install_github('darwin-eu/cdmonboarding', ref='3.3.4')
   devtools::install(quick = TRUE, upgrade = 'never')
   devtools::reload()
 }
@@ -24,7 +24,7 @@ results <- CdmOnboarding::compat(results)
 
 CdmOnboarding::generateResultsDocument(
   results = results,
-  outputFolder = 'output',
+  outputFolder = path,
   authors = authors
 )
 

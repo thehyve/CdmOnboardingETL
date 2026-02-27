@@ -13,6 +13,9 @@ generateResultsDocument(results, outputFolder, authors)
 
 \item{authors}{List of author names to be added in the document}
 }
+\value{
+Writes to outputFolder a Word document with the results of the checks.
+}
 \description{
 \code{generateResultsDocument} creates a word document with results based on a template
 }

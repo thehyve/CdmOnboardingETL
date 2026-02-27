@@ -1,6 +1,6 @@
 # @file getCdmSource.R
 #
-# Copyright 2024 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -48,8 +48,10 @@
     ParallelLogger::logWarn("Multiple records found in the cdm_source table. The first record is used.")
     cdmSource <- cdmSource[1, ]
   }
+
   if (nrow(cdmSource) == 0) {
-    stop("No records found in the cdm_source table. Please populate the table.")
+    ParallelLogger::logError("No records found in the cdm_source table. Please populate the table.")
+    stop()
   }
 
   # Format as date
