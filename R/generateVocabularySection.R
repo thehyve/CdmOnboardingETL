@@ -1,6 +1,6 @@
 # @file generateVocabularySection.R
 #
-# Copyright 2024 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #

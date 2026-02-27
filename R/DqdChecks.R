@@ -1,6 +1,6 @@
 # @file DqdChecks.R
 #
-# Copyright 2023 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -23,7 +23,7 @@
 #' @param dqdJsonPath Path to the DQD JSON file
 #' @return list with version, overview, startTimestamp, executionTime
 .processDqdResults <- function(dqdJsonPath) {
-  ParallelLogger::logInfo("Reading DataQualityDashboard results")
+  ParallelLogger::logInfo("> Reading DataQualityDashboard results")
   tryCatch({
     df <- jsonlite::read_json(path = dqdJsonPath, simplifyVector = TRUE)
     dqdResults <- list(
