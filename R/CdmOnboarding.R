@@ -122,12 +122,24 @@ cdmOnboarding <- function(
     }
   })
 
-  cdm <- CDMConnector::cdmFromCon(
-    con = connection@dbiConnection,
-    cdmSchema = cdmSchema,
-    writeSchema = writeSchema,
-    .softValidation = TRUE
-  )
+  # If class dbi, then use @dbiConnection
+  if (class(connection) == 'DatabaseConnectorDbiConnection') {
+    cdm <- CDMConnector::cdmFromCon(
+      con = connection@dbiConnection,
+      cdmSchema = cdmSchema,
+      writeSchema = writeSchema,
+      .softValidation = TRUE
+    )
+  } else {
+    cdm <- CDMConnector::cdmFromCon(
+      con = connection,
+      cdmSchema = cdmSchema,
+      writeSchema = writeSchema,
+      .softValidation = TRUE
+    )
+  }
+
+
 
   results <- .execute(
     connection = connection,
