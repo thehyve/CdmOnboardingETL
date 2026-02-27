@@ -123,7 +123,7 @@ cdmOnboarding <- function(
   })
 
   cdm <- CDMConnector::cdmFromCon(
-    con = connection,
+    con = connection@dbiConnection,
     cdmSchema = cdmSchema,
     writeSchema = writeSchema,
     .softValidation = TRUE

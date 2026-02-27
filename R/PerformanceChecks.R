@@ -128,7 +128,7 @@ performanceChecks <- function(
   }
 
   # Installed Packages
-  ParallelLogger::logError("Retrieving HADES and DARWIN package versions")
+  ParallelLogger::logInfo("> Retrieving HADES and DARWIN package versions")
   hadesPackages <- .getHADESpackages()
   hadesPackageVersions <- .getPackacheVersions(hadesPackages)
 

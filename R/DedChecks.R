@@ -46,8 +46,8 @@
   # Caused by error:
   # ! Failed to prepare query : ERROR:  syntax error at or near ","
   # LINE 1: SELECT 1.*, route, concept_name AS ingredient_name
-  drugExposureDiagnostics <- tryCatch({
-    dedResults <- DrugExposureDiagnostics::executeChecks(
+  dedResults <- tryCatch({
+    DrugExposureDiagnostics::executeChecks(
       cdm = cdm,
       ingredients = dedIngredients$concept_id,
       checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
