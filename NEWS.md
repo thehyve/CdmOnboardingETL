@@ -1,3 +1,10 @@
+# CdmOnboarding 4.1.0
+
+ * Add DARWIN benchmarks
+ * Re-allow regular connectionDetails
+ * Fixes for using DBI connection details
+ * Prepare for CRAN submission
+
 # CdmOnboarding 4.0.0
 
  * Refactor to use DBI connection details
