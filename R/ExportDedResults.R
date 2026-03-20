@@ -1,6 +1,6 @@
 # @file ExportDedResults.R
 #
-# Copyright 2026 Darwin EU Coordination Center
+# Copyright 2024 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -59,13 +59,21 @@ exportDedResults <- function(
   outputFilename <- sprintf('ded_results_%s_%s.csv', results$databaseId, format(Sys.time(), "%Y%m%d"))
 
   dedResult %>%
+    # Numeric into character to be able to add metadata rows
+    mutate(
+      `#Records` = as.character(.data$`#Records`),
+      `#Persons` = as.character(.data$`#Persons`),
+    ) %>%
     # add metadata
-    rbind(c(
-      sprintf("Execution Date: %s", results$executionDate),
-      sprintf("Source Release Date: %s", results$cdmSource$SOURCE_RELEASE_DATE),
-      sprintf("CDM Release Date: %s", results$cdmSource$CDM_RELEASE_DATE),
-      sprintf("DED Version: %s", dedVersion),
-      rep(NA, ncol(dedResult) - 4)
+    rbind(setNames(
+      c(
+        sprintf("Execution Date: %s", results$executionDate),
+        sprintf("Source Release Date: %s", results$cdmSource$SOURCE_RELEASE_DATE),
+        sprintf("CDM Release Date: %s", results$cdmSource$CDM_RELEASE_DATE),
+        sprintf("DED Version: %s", dedVersion),
+        rep(NA, ncol(dedResult) - 4)
+      ),
+      names(dedResult)
     )) %>%
     write.csv(
       file = file.path(outputFolder, outputFilename),
@@ -76,14 +84,15 @@ exportDedResults <- function(
 
 .formatDedResults <- function(ded_results, dedVersion) {
   ded_results <- ded_results %>%
-    mutate(
-      ingredient_concept_id <- as.character(.data$ingredient_concept_id),
-      # Round counts to nearest 10
-      n_records <- prettyHr(round(.data$n_records / 10) * 10),
-      n_patients <- prettyHr(round(.data$n_patients / 10) * 10)   
-    ) %>%
     # Ingredients with highest record count first
-    arrange(desc(.data$n_records))
+    arrange(desc(.data$n_records)) %>%
+    # Format counts with thousands separator and round to nearest 10, and convert concept id to character to prevent scientific notation
+    mutate(
+      ingredient_concept_id = as.character(.data$ingredient_concept_id),
+      # Round counts to nearest 10
+      n_records = prettyHr(round(.data$n_records / 10) * 10),
+      n_patients = prettyHr(round(.data$n_patients / 10) * 10)   
+    )
 
   # In DED v1.0.9 the dose columns can be missing
   if (!("n_dose_and_missingness" %in% colnames(ded_results))) {
