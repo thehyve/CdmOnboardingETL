@@ -50,7 +50,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
         Table = .data$TABLENAME,
         `#Records` = .data$COUNT,
         `#Persons` = .data$N_PERSONS,
-        `%Persons` = prettyPc(.data$N_PERSONS / personCount * 100),
+        `%Persons` = prettyPc(as.numeric(.data$N_PERSONS) / personCount * 100),
         .keep = "none"  # do not display other columns
       )
 
@@ -154,7 +154,7 @@ generateDataTablesSection <- function(doc, df, cdmSource, optimized) {
       mutate(
         Field = sprintf("Persons with %s observation period(s)", .data$N_OBSERVATION_PERIODS),
         Value = .data$N_PERSONS,
-        `%Persons` = prettyPc(.data$N_PERSONS / personCount * 100),
+        `%Persons` = prettyPc(as.numeric(.data$N_PERSONS) / personCount * 100),
         .keep = "none"  # do not display other columns
       )
   } else {
