@@ -57,7 +57,7 @@ main <- function() {
     results$drugExposureDiagnostics <- dedResults
     saveRDS(results, file.path(outputMergedPath, sprintf("CdmOnboarding_%s_%s.rds", results$databaseId, format(Sys.time(), "%Y%m%d"))))
 
-    results <- CdmOnboarding::compat(results)
+    # results <- CdmOnboarding:::compat(results)
 
     CdmOnboarding::generateResultsDocument(results, outputMergedPath, authors = c())
     print(sprintf("Merged results saved to %s", outputMergedPath))

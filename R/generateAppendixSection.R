@@ -37,7 +37,7 @@ generateAppendixSection <- function(doc, results, optimized) {
         dplyr::bind_rows(
           data.frame(
             TABLENAME = "concept_recommended",
-            COUNT = df$countConceptRecommended
+            COUNT = as.numeric(df$countConceptRecommended)
           )
         )
     }
