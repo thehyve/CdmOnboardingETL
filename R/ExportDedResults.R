@@ -71,7 +71,8 @@ exportDedResults <- function(
         sprintf("Source Release Date: %s", results$cdmSource$SOURCE_RELEASE_DATE),
         sprintf("CDM Release Date: %s", results$cdmSource$CDM_RELEASE_DATE),
         sprintf("DED Version: %s", dedVersion),
-        rep(NA, ncol(dedResult) - 4)
+        sprintf("Execution Duration: %.1f s", df_ded$duration),
+        rep(NA, ncol(dedResult) - 3)
       ),
       names(dedResult)
     )) %>%
