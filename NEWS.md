@@ -1,3 +1,8 @@
+# CdmOnboarding 4.1.1
+
+ * Fixes for DED export
+ * Support legacy version DatabaseConnector v6.0
+
 # CdmOnboarding 4.1.0
 
  * Add DARWIN benchmarks
