@@ -48,7 +48,7 @@ exportDedResults <- function(
     df_ded <- results$drugExposureDiagnostics
   }
 
-  if (nrow(df_ded$result) == 0) {
+  if (is.null(df_ded$result) || nrow(df_ded$result) == 0) {
     ParallelLogger::logInfo("No DrugExposureDiagnostics results to export")
     return()
   }

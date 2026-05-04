@@ -1,6 +1,5 @@
 # This takes the rds file stored in given path, and writes the docx report to the same path
 path <- readline("Enter the path where CdmOnboarding results are: ")
-path <- '/Users/maxim/Library/CloudStorage/OneDrive-DarwinEUCoordinationCentre/Network Operations/02 DP Onboarding/Received Onboarding Documents/Year 2/NAJS/202604/cdmOnboarding/'
 rds <- list.files(path, '*.rds')
 results <- readRDS(file.path(path, rds))
 authors <- c('-')

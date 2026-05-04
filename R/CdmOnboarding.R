@@ -314,7 +314,10 @@ cdmOnboarding <- function(
 
   # Snapshot -------------------------
   cdmSnapshot <- tryCatch({
-    CDMConnector::snapshot(cdm, computeDataHash = TRUE)
+    df <- CDMConnector::snapshot(cdm)
+    # computeDataHash in snapshot function requires DatabaseConnector v7.0, while function available since v6.0
+    df$cdm_data_hash <- DatabaseConnector::computeDataHash(connection, cdmSchema)
+    df
   }, error = function(e) {
     ParallelLogger::logWarn("Could not create snapshot file: ", e)
     NULL
