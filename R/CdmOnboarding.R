@@ -305,9 +305,22 @@ cdmOnboarding <- function(
 
   # If version later than 5.4, check if episode table exists
   if (compareVersion(a = cdmVersion, b = "5.4") >= 0) {
-    episodeTableExists <- "episode" %in% CDMConnector::listTables(connection, cdmSchema)
+    # Try querying the episode table directly. The function CDMConnector::listTables(connection, cdmSchema) does not always work.
+    episodeTableExists <-tryCatch({
+      DatabaseConnector::querySql(
+        connection, 
+        SqlRender::render(
+          "SELECT * FROM @cdmDatabaseSchema.episode",
+          cdmDatabaseSchema = cdmSchema
+        )
+      )
+      return(TRUE)
+    }, error = function(e) {
+      return(FALSE)
+    })
+
     if (!episodeTableExists) {
-      ParallelLogger::logWarn("CDM version 5.4 detected, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
+      ParallelLogger::logWarn("CDM version 5.4 specified, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
       cdmVersion <- "5.3"
     }
   }
