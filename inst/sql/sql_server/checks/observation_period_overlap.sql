@@ -1,4 +1,4 @@
--- Count pairs of overlapping observation periods per person.
+-- Count pairs of overlapping OR back-to-back observation periods per person.
 -- Observation periods overlap if, for the same person, the start date of one observation period is 
 -- before the end date of another observation period AND the end date is after the start date.
 -- Both periods are captured as overlapping, so the count has to be divided by 2 to get number of 
@@ -10,6 +10,7 @@ FROM @cdmDatabaseSchema.observation_period AS a
 JOIN @cdmDatabaseSchema.observation_period AS b ON
       a.person_id = b.person_id 
   AND DATEADD(day, 1, a.observation_period_end_date) >= b.observation_period_start_date
+  AND DATEADD(day, 1, b.observation_period_end_date) >= a.observation_period_start_date
   AND a.observation_period_id <> b.observation_period_id
 GROUP BY a.person_id
 ;
