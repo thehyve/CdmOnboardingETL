@@ -5,7 +5,7 @@
 -- overlapping pairs of observation periods.
 SELECT 
   a.person_id,
-  COUNT(*) AS n_overlapping_pairs
+  COUNT(*)/2 AS n_overlapping_pairs
 FROM @cdmDatabaseSchema.observation_period AS a
 JOIN @cdmDatabaseSchema.observation_period AS b ON
       a.person_id = b.person_id 
