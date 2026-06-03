@@ -17,9 +17,8 @@ if (FALSE) {
   devtools::reload()
 }
 # Optional, make compatible with current version
-results <- CdmOnboarding:::compat(results)
-# source('R/compat.R')
-# results <- compat(results)
+source('extras/compat.R')
+results <- compat(results)
 
 CdmOnboarding::generateResultsDocument(
   results = results,
