@@ -191,6 +191,18 @@ cdmOnboarding <- function(
     })
   }
 
+  if (runPerformanceChecks) {
+    tryCatch({
+      exportPerformanceBenchmark(
+        results = results,
+        outputFolder = outputFolder
+      )
+    }, error = function(e) {
+      ParallelLogger::logError("Could not create Performance Benchmark csv: ", e)
+      ParallelLogger::logInfo("Results from Performance Benchmark have been saved as an RDS object to the output folder.")
+    })
+  }
+
   tryCatch({
     bundledResultsLocation <- .bundleResults(outputFolder, databaseId)
     ParallelLogger::logInfo("> All generated CDM Onboarding results are bundled for sharing at: ", bundledResultsLocation)

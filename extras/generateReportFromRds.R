@@ -7,7 +7,6 @@ authors <- c('-')
 # Optional, add separate DED results
 path_ded <- readline("Enter the path for DED file: ")
 ded_results <- readRDS(path_ded)
-CdmOnboarding::exportDedResults(path_ded)
 results$drugExposureDiagnostics <- ded_results
 
 if (FALSE) {
@@ -25,6 +24,11 @@ CdmOnboarding::generateResultsDocument(
   outputFolder = path,
   authors = authors
 )
+
+# Generate csv for Portal reports
+CdmOnboarding::exportDedResults(results, outputFolder = path)
+CdmOnboarding::exportBenchmark(results, outputFolder = path)
+
 
 # Plot regeneration -----
 library(tidyverse)
