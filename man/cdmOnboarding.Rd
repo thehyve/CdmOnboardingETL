@@ -112,7 +112,6 @@ results <- CdmOnboarding::cdmOnboarding(
   authors = authors,
   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 )
-unlink("output", recursive = TRUE, force = TRUE)
-
+unlink("output", recursive = TRUE, force = TRUE)#' 
 }
 }

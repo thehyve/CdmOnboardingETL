@@ -84,8 +84,7 @@
 #'   authors = authors,
 #'   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 #' )
-#' unlink("output", recursive = TRUE, force = TRUE)
-#' 
+#' unlink("output", recursive = TRUE, force = TRUE)#' 
 #' }
 #' @export
 cdmOnboarding <- function(
@@ -138,8 +137,6 @@ cdmOnboarding <- function(
       .softValidation = TRUE
     )
   }
-
-
 
   results <- .execute(
     connection = connection,
@@ -318,7 +315,7 @@ cdmOnboarding <- function(
   # If version later than 5.4, check if episode table exists
   if (compareVersion(a = cdmVersion, b = "5.4") >= 0) {
     # Try querying the episode table directly. The function CDMConnector::listTables(connection, cdmSchema) does not always work.
-    episodeTableExists <-tryCatch({
+    episodeTableExists <- tryCatch({
       DatabaseConnector::querySql(
         connection, 
         SqlRender::render(
@@ -326,9 +323,9 @@ cdmOnboarding <- function(
           cdmDatabaseSchema = cdmSchema
         )
       )
-      return(TRUE)
+      TRUE
     }, error = function(e) {
-      return(FALSE)
+      FALSE
     })
 
     if (!episodeTableExists) {

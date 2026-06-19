@@ -4,10 +4,10 @@
 \alias{.checkAchillesTablesExist}
 \title{Achilles tables can be queried AND contain data}
 \usage{
-.checkAchillesTablesExist(connectionDetails, resultsDatabaseSchema)
+.checkAchillesTablesExist(connection, resultsDatabaseSchema)
 }
 \arguments{
-\item{connectionDetails}{DatabaseConnector An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connection}{An R object of type \code{DatabaseConnectorDbiConnection}}
 
 \item{resultsDatabaseSchema}{Fully qualified name of database schema that holds the the Achilles results.}
 }
