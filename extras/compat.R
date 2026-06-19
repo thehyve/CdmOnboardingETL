@@ -9,7 +9,6 @@ library(dplyr)
 #' @param r A list of results from CdmOnboarding.
 #' @return A list of results from CdmOnboarding, forwards compatible with v3.
 #' @export
-#' @importFrom stringr str_replace str_replace_all str_to_title
 compat <- function(r) {
   print(sprintf("Converting results from version %s to %s", .get_cdmonboarding_version(r), packageVersion("CdmOnboarding")))
 

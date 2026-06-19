@@ -54,7 +54,7 @@
 #' @param optimize                         Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Postgres
 #' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
 #'   dbms = "postgresql",
@@ -123,7 +123,7 @@ cdmOnboarding <- function(
   })
 
   # If class dbi, then use @dbiConnection
-  if (class(connection) == 'DatabaseConnectorDbiConnection') {
+  if (inherits(connection, 'DatabaseConnectorDbiConnection')) {
     cdm <- CDMConnector::cdmFromCon(
       con = connection@dbiConnection,
       cdmSchema = cdmSchema,

@@ -51,16 +51,17 @@ Imports:
   stats,
   cowplot,
   scales,
-  stringr,
   httr,
   utils,
   checkmate
 Suggests:
   DBI,
   RPostgres,
+  odbc,
   duckdb,
   devtools,
   testthat (>= 3.0.0),
   withr,
+  stringr,
   Achilles (>= 1.7.2)
 Config/testthat/edition: 3

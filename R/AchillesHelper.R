@@ -20,6 +20,8 @@
 # @author Maxim Moinat
 
 #' Achilles tables can be queried AND contain data
+#' @param connectionDetails DatabaseConnector An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.
+#' @param resultsDatabaseSchema Fully qualified name of database schema that holds the the Achilles results.
 .checkAchillesTablesExist <- function(connectionDetails, resultsDatabaseSchema) {
   required_achilles_tables <- c("achilles_results", "achilles_results_dist")
 

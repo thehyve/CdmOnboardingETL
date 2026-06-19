@@ -153,6 +153,7 @@ exportDedResults <- function(
 #' @param outputFolder folder to store the results
 #' @return Writes to outputFolder a csv file with the Benchmark results
 #' @export
+#' @importFrom stats setNames
 exportPerformanceBenchmark <- function(results, outputFolder = getwd()) {
   # Get performance results
   performanceResults <- results$performanceResults
@@ -162,27 +163,27 @@ exportPerformanceBenchmark <- function(results, outputFolder = getwd()) {
     performanceResults$cdmConnectorBenchmark$result |>
       mutate(
         benchmark = 'CdmConnector',
-        task,
-        time_taken_secs,
+        .data$task,
+        .data$time_taken_secs,
         .keep = 'none'
       ),
     performanceResults$analyticsBenchmark$result |>
       mutate(
-        benchmark = package_name,
-        task = group_level,
-        time_taken_secs = as.numeric(estimate_value),
+        benchmark = .data$package_name,
+        task = .data$group_level,
+        time_taken_secs = as.numeric(.data$estimate_value),
         .keep = 'none'
       ),
     performanceResults$cohortBenchmark |>
       mutate(
         benchmark = 'Cohort Generation',
-        task = cohort_name,
-        time_taken_secs = duration,
+        task = .data$cohort_name,
+        time_taken_secs = .data$duration,
         .keep = 'none'
       )
   ) |>
     mutate(
-      timeTaken = prettyunits::pretty_sec(time_taken_secs),
+      timeTaken = prettyunits::pretty_sec(.data$time_taken_secs),
       .keep = 'unused'
     )
   
