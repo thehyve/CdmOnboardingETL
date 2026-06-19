@@ -1,3 +1,6 @@
+library(stringr)
+library(dplyr)
+
 #' Compatibility of CdmOnboarding results
 #'
 #' @description
@@ -205,6 +208,19 @@ compat <- function(r) {
   if (is.null(r$performanceResults$darwinPackageVersions$LibPath)) {
     r$performanceResults$darwinPackageVersions$LibPath <- character(nrow(r$performanceResults$darwinPackageVersions))
   }
+  if (is.null(r$performanceResults$analyticsBenchmark)) {
+    r$performanceResults$analyticsBenchmark$result <- data.frame(package_name = character(0), group_level = character(0), estimate_value = numeric(0))
+  }
+  if (is.null(r$performanceResults$cdmConnectorBenchmark)) {
+    r$performanceResults$cdmConnectorBenchmark$result <- data.frame()
+  }
+  if (is.null(r$performanceResults$cohortBenchmark)) {
+    if (!is.null(r$cohortBenchmark)) {
+      r$performanceResults$cohortBenchmark <- r$cohortBenchmark
+    } else {
+      r$performanceResults$cohortBenchmark <- data.frame()
+    }
+  }  
 
   return(r)
 }

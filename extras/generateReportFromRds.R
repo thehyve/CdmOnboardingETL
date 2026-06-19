@@ -1,5 +1,7 @@
 # This takes the rds file stored in given path, and writes the docx report to the same path
 path <- readline("Enter the path where CdmOnboarding results are: ")
+# Strip from quotes
+path <- dirname(gsub("'", "", path))
 rds <- list.files(path, '*.rds')
 results <- readRDS(file.path(path, rds))
 authors <- c('-')
@@ -27,7 +29,7 @@ CdmOnboarding::generateResultsDocument(
 
 # Generate csv for Portal reports
 CdmOnboarding::exportDedResults(results, outputFolder = path)
-CdmOnboarding::exportBenchmark(results, outputFolder = path)
+CdmOnboarding::exportPerformanceBenchmark(results, outputFolder = path)
 
 
 # Plot regeneration -----
