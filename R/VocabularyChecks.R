@@ -67,7 +67,7 @@ vocabularyChecks <- function(connection,
   # Note: if one query in the tryCatch fails, then all fail ("current transaction is aborted")
   ParallelLogger::logInfo("Starting vocab mapping queries. Preprocessing domains...")
   mappingTempTableCreation <- executeQuery(outputFolder, "mapping_temp_tables.sql", successMessage = "Mapping Temp tables query executed successfully",
-                                           connection = connection, useExecuteSql = TRUE, cdmDatabaseSchema = cdmDatabaseSchema, cdmVersion = cdmVersion, optimize = optimize)
+                                           connection = connection, useExecuteSql = TRUE, cdmDatabaseSchema = cdmDatabaseSchema, cdmVersion = cdmVersion)
   mappingCompleteness <- executeQuery(outputFolder, "mapping_completeness.sql", successMessage = "Mapping Completeness query executed successfully",
                                       connection = connection, cdmVersion = cdmVersion)
 
