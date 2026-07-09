@@ -122,7 +122,8 @@ cdmOnboarding <- function(
   })
 
   # If class dbi, then use @dbiConnection
-  if (inherits(connection, 'DatabaseConnectorDbiConnection')) {
+  isDbiConnection <- inherits(connection, 'DatabaseConnectorDbiConnection')
+  if (isDbiConnection) {
     cdm <- CDMConnector::cdmFromCon(
       con = connection@dbiConnection,
       cdmSchema = cdmSchema,
@@ -130,6 +131,7 @@ cdmOnboarding <- function(
       .softValidation = TRUE
     )
   } else {
+    ParallelLogger::logWarn("It is recommended to use a DbiConnectionDetails object for the connectionDetails parameter. Using a non-DbiConnectionDetails object may result in errors for benchmarking and drugexposurediagnostics.")
     cdm <- CDMConnector::cdmFromCon(
       con = connection,
       cdmSchema = cdmSchema,
@@ -501,6 +503,7 @@ cdmOnboarding <- function(
     performanceResults = performanceResults,
     webAPIversion = webApiVersion,
     dms = connection@dbms,
+    withDbiConnection = inherits(connection, 'DatabaseConnectorDbiConnection'),
     cdmSource = cdmSource,
     cdmSnapshot = cdmSnapshot,
     cdmHashByTable = cdmHashByTable,

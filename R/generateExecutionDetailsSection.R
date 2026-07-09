@@ -28,7 +28,8 @@ generateExecutionDetails <- function(doc, df) {
   metadata <- data.frame(rbind(
     c("CdmOnboarding package version", paste0(
       df$cdmOnboardingVersion,
-      if (df$runWithOptimizedQueries) ' (performance optimized=TRUE)' else ''
+      if (df$runWithOptimizedQueries) ' (performance optimized=TRUE)' else '',
+      if (df$withDbiConnection) ' (using DbiConnection)' else ' (using non-DbiConnection)'
     )),
     c("Database", df$dms),
     c("CDM version", df$cdmSource$CDM_VERSION),

@@ -105,7 +105,7 @@ performanceChecks <- function(
   })
 
   # Applied indexes
-  ParallelLogger::logError("Extracting applied indexes")
+  ParallelLogger::logInfo("> Extracting applied indexes")
   appliedIndexes <- NULL
   if (connection@dbms == "postgresql") {
     appliedIndexes <- executeQuery(
