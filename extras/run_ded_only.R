@@ -11,6 +11,8 @@ con <- DBI::dbConnect(
   host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
   user = Sys.getenv("CDM5_POSTGRESQL_USER"),
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
+  # ,bigint = c("numeric")
+
 )
 
 # Alternative1: Connecting using dsn, to be set up in database driver
@@ -36,7 +38,7 @@ ded_start_time <- Sys.time()
 dedIngredients <- CdmOnboarding::getDedIngredients()
 dedResults <- DrugExposureDiagnostics::executeChecks(
   cdm = cdm,
-  ingredients = dedIngredients$concept_id,
+  ingredients = c(1125315, 1154343, 1703687),
   checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
   minCellCount = 5,
   sample = NULL,
