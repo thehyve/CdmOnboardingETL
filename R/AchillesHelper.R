@@ -19,22 +19,46 @@
 # @author Darwin EU Coordination Center
 # @author Maxim Moinat
 
+#' Achilles tables can be queried AND contain data
+#' @param connection An R object of type \code{DatabaseConnectorDbiConnection}
+#' @param resultsDatabaseSchema Fully qualified name of database schema that holds the the Achilles results.
 .checkAchillesTablesExist <- function(connection, resultsDatabaseSchema) {
-  resultsTables <- CDMConnector::listTables(connection, resultsDatabaseSchema)
-  requiredAchillesTables <- c("achilles_analysis", "achilles_results", "achilles_results_dist")
-  achillesTablesExist <- requiredAchillesTables %in% tolower(resultsTables)
+  required_achilles_tables <- c("achilles_results", "achilles_results_dist")
 
-  if (!all(achillesTablesExist)) {
-    ParallelLogger::logWarn(
-      sprintf(
-        "Achilles tables '%s' have not been found in schema '%s'",
-        paste(requiredAchillesTables[!achillesTablesExist], collapse = "','"),
-        resultsDatabaseSchema
-      )
+  achilles_tables_exist <- TRUE
+  for (table in required_achilles_tables) {
+    sql_rendered <- SqlRender::render(
+      "SELECT COUNT(*) AS n FROM @schema.@table",
+      schema = resultsDatabaseSchema,
+      table = table
     )
-  }
 
-  return(all(achillesTablesExist))
+    sql_translated <- SqlRender::translate(sql_rendered, targetDialect = connectionDetails$dbms)
+
+    result <- tryCatch({
+      df <- DatabaseConnector::querySql(connection, sql_translated, snakeCaseToCamelCase = TRUE)
+      df$n[1]
+    }, error = function(e) {
+      NA
+    })
+
+    if (is.na(result)) {
+      ParallelLogger::logWarn(sprintf(
+        "Achilles table '%s.%s' has not been found.",
+        resultsDatabaseSchema,
+        table
+      ))
+      achilles_tables_exist <- FALSE
+    } else if (result == 0) {
+      ParallelLogger::logWarn(sprintf(
+        "Achilles table '%s.%s' is empty.",
+        resultsDatabaseSchema,
+        table
+      ))
+      achilles_tables_exist <- FALSE
+    }
+  }
+  return(achilles_tables_exist)
 }
 
 .getAchillesMetadata <- function(connection, resultsDatabaseSchema, outputFolder) {

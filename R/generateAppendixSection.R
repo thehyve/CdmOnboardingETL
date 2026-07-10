@@ -37,7 +37,7 @@ generateAppendixSection <- function(doc, results, optimized) {
         dplyr::bind_rows(
           data.frame(
             TABLENAME = "concept_recommended",
-            COUNT = df$countConceptRecommended
+            COUNT = as.numeric(df$countConceptRecommended)
           )
         )
     }
@@ -75,6 +75,9 @@ generateAppendixSection <- function(doc, results, optimized) {
           `Duration` = prettyunits::pretty_sec(.data$compute_time_minutes * 60),
           .keep = 'none'
         )
+      ) %>%
+      my_body_add_runtime(
+        sum(results$cdmHashByTable$compute_time_minutes) * 60
       )
   }
 

@@ -115,7 +115,7 @@ generateResultsDocument <- function(results, outputFolder, authors) {
     officer::body_end_section_portrait() %>%
     officer::body_add_par("Drug Exposure Diagnostics", style = pkg.env$styles$heading1)
 
-  if (!is.null(results$drugExposureDiagnostics)) {
+  if (!is.null(results$drugExposureDiagnostics$result)) {
     doc <- generateDedSection(doc, results$drugExposureDiagnostics)
   } else {
     doc <- doc %>%

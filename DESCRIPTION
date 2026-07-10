@@ -1,6 +1,6 @@
 Package: CdmOnboarding
 Title: Generate Onboarding Report for the OMOP Common Data Model
-Version: 4.1.0
+Version: 4.1.1
 Authors@R:
   c(person("Maxim", "Moinat",
            role = c("aut", "cre"),
@@ -30,7 +30,7 @@ RoxygenNote: 7.3.3
 Depends: 
   R (>= 4.2.0)
 Imports:
-  DatabaseConnector (>= 7.0.0),
+  DatabaseConnector (>= 6.0.0),
   ParallelLogger,
   SqlRender,
   CDMConnector (>= 2.3.0),
@@ -51,16 +51,17 @@ Imports:
   stats,
   cowplot,
   scales,
-  stringr,
   httr,
   utils,
   checkmate
 Suggests:
   DBI,
   RPostgres,
+  odbc,
   duckdb,
   devtools,
   testthat (>= 3.0.0),
   withr,
+  stringr,
   Achilles (>= 1.7.2)
 Config/testthat/edition: 3

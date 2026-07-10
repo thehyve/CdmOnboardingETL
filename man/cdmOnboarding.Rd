@@ -82,7 +82,7 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
 }
 \examples{
-\donttest{
+\dontrun{
 # Postgres
 connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
   dbms = "postgresql",
@@ -112,7 +112,6 @@ results <- CdmOnboarding::cdmOnboarding(
   authors = authors,
   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 )
-unlink("output", recursive = TRUE, force = TRUE)
-
+unlink("output", recursive = TRUE, force = TRUE)#' 
 }
 }

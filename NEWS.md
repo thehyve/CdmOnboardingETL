@@ -1,3 +1,9 @@
+# CdmOnboarding 4.1.1
+
+ * Fixes for DED export
+ * Support legacy version DatabaseConnector v6.0
+ * Fix observation period overlap query
+
 # CdmOnboarding 4.1.0
 
  * Add DARWIN benchmarks

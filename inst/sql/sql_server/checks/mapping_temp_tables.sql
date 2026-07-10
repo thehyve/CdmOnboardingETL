@@ -44,13 +44,14 @@ from @cdmDatabaseSchema.procedure_occurrence
 group by procedure_concept_id, procedure_source_value, procedure_source_concept_id
 ;
 
+-- Drug has num_patients column for the mapping levels table
 select
   ISNULL(drug_source_value, '') as source_value,
   drug_concept_id as concept_id,
   drug_source_concept_id as source_concept_id,
   case when drug_concept_id = 0 or drug_concept_id > 2000000000 then 0 else 1 end as is_mapped,
   count_big(*) as num_records,
-  {@optimize} ? {0} : {count_big(distinct person_id)} as num_patients -- for the drug levels table
+  count_big(distinct person_id) as num_patients
 into #drug
 from @cdmDatabaseSchema.drug_exposure
 group by drug_concept_id, drug_source_value, drug_source_concept_id

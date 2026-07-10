@@ -54,7 +54,7 @@
 #' @param optimize                         Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE
 #' @return                                 An object of type \code{achillesResults} containing details for connecting to the database containing the results
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Postgres
 #' connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
 #'   dbms = "postgresql",
@@ -84,8 +84,7 @@
 #'   authors = authors,
 #'   baseUrl = Sys.getenv("WEBAPI_BASEURL")
 #' )
-#' unlink("output", recursive = TRUE, force = TRUE)
-#' 
+#' unlink("output", recursive = TRUE, force = TRUE)#' 
 #' }
 #' @export
 cdmOnboarding <- function(
@@ -123,7 +122,8 @@ cdmOnboarding <- function(
   })
 
   # If class dbi, then use @dbiConnection
-  if (class(connection) == 'DatabaseConnectorDbiConnection') {
+  isDbiConnection <- inherits(connection, 'DatabaseConnectorDbiConnection')
+  if (isDbiConnection) {
     cdm <- CDMConnector::cdmFromCon(
       con = connection@dbiConnection,
       cdmSchema = cdmSchema,
@@ -131,6 +131,7 @@ cdmOnboarding <- function(
       .softValidation = TRUE
     )
   } else {
+    ParallelLogger::logWarn("It is recommended to use a DbiConnectionDetails object for the connectionDetails parameter. Using a non-DbiConnectionDetails object may result in errors for benchmarking and drugexposurediagnostics.")
     cdm <- CDMConnector::cdmFromCon(
       con = connection,
       cdmSchema = cdmSchema,
@@ -138,8 +139,6 @@ cdmOnboarding <- function(
       .softValidation = TRUE
     )
   }
-
-
 
   results <- .execute(
     connection = connection,
@@ -188,6 +187,18 @@ cdmOnboarding <- function(
     }, error = function(e) {
       ParallelLogger::logError("Could not create DrugExposureDiagnostics csv: ", e)
       ParallelLogger::logInfo("Results from DrugExposureDiagnostics have been saved as an RDS object to the output folder.")
+    })
+  }
+
+  if (runPerformanceChecks) {
+    tryCatch({
+      exportPerformanceBenchmark(
+        results = results,
+        outputFolder = outputFolder
+      )
+    }, error = function(e) {
+      ParallelLogger::logError("Could not create Performance Benchmark csv: ", e)
+      ParallelLogger::logInfo("Results from Performance Benchmark have been saved as an RDS object to the output folder.")
     })
   }
 
@@ -305,16 +316,32 @@ cdmOnboarding <- function(
 
   # If version later than 5.4, check if episode table exists
   if (compareVersion(a = cdmVersion, b = "5.4") >= 0) {
-    episodeTableExists <- "episode" %in% CDMConnector::listTables(connection, cdmSchema)
+    # Try querying the episode table directly. The function CDMConnector::listTables(connection, cdmSchema) does not always work.
+    episodeTableExists <- tryCatch({
+      DatabaseConnector::querySql(
+        connection, 
+        SqlRender::render(
+          "SELECT * FROM @cdmDatabaseSchema.episode",
+          cdmDatabaseSchema = cdmSchema
+        )
+      )
+      TRUE
+    }, error = function(e) {
+      FALSE
+    })
+
     if (!episodeTableExists) {
-      ParallelLogger::logWarn("CDM version 5.4 detected, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
+      ParallelLogger::logWarn("CDM version 5.4 specified, but 'episode' table does not exist. Assuming actual version is v5.3") # nolint
       cdmVersion <- "5.3"
     }
   }
 
   # Snapshot -------------------------
   cdmSnapshot <- tryCatch({
-    CDMConnector::snapshot(cdm, computeDataHash = TRUE)
+    df <- CDMConnector::snapshot(cdm)
+    # computeDataHash in snapshot function requires DatabaseConnector v7.0, while function available since v6.0
+    df$cdm_data_hash <- DatabaseConnector::computeDataHash(connection, cdmSchema)
+    df
   }, error = function(e) {
     ParallelLogger::logWarn("Could not create snapshot file: ", e)
     NULL
@@ -476,6 +503,7 @@ cdmOnboarding <- function(
     performanceResults = performanceResults,
     webAPIversion = webApiVersion,
     dms = connection@dbms,
+    withDbiConnection = inherits(connection, 'DatabaseConnectorDbiConnection'),
     cdmSource = cdmSource,
     cdmSnapshot = cdmSnapshot,
     cdmHashByTable = cdmHashByTable,

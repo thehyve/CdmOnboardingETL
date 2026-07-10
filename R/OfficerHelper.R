@@ -172,6 +172,10 @@ my_source_value_count_section <- function(x, data, domain, kind, smallCellCount)
 
 my_unmapped_section <- function(x, data, domain, smallCellCount) {
   if (!is.null(data$result)) {
+    data$result <- tryCatch(
+      safe_convert_to_utf8(data$result),
+      error = function(e) data$result
+    )
     names(data$result) <- c("#", "Source Value", "Source Concept id", "Source Concept Name", "#Records", "%Records")
   }
   # TODO: for unit, value, route; no source concept id field, so better to leave it out of report.
@@ -180,7 +184,37 @@ my_unmapped_section <- function(x, data, domain, smallCellCount) {
 
 my_mapped_section <- function(x, data, domain, smallCellCount) {
   if (!is.null(data$result)) {
+    data$result <- tryCatch(
+      safe_convert_to_utf8(data$result),
+      error = function(e) data$result
+    )
     names(data$result) <- c("#", "Concept id", "Concept Name", "#Records", "%Records")
   }
   my_source_value_count_section(x, data, domain, "mapped", smallCellCount)
+}
+
+# Ensure character columns are valid UTF-8 to avoid errors in officer/string functions
+safe_convert_to_utf8 <- function(df) {
+  if (is.null(df) || nrow(df) == 0) return(df)
+  for (nm in names(df)) {
+    if (is.character(df[[nm]])) {
+      vec <- df[[nm]]
+      # mark entries that are valid UTF-8
+      valid <- !is.na(iconv(vec, from = "UTF-8", to = "UTF-8"))
+      if (any(!valid)) {
+        # try latin1
+        vec[!valid] <- iconv(vec[!valid], from = "latin1", to = "UTF-8")
+      }
+      # still NA? try CP1252
+      still_na <- is.na(vec)
+      if (any(still_na)) {
+        vec[still_na] <- iconv(df[[nm]][still_na], from = "CP1252", to = "UTF-8", sub = "")
+      }
+      # final fallback: replace any remaining NAs with empty string
+      vec[is.na(vec)] <- ""
+      Encoding(vec) <- "UTF-8"
+      df[[nm]] <- vec
+    }
+  }
+  df
 }

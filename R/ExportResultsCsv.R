@@ -1,6 +1,6 @@
 # @file ExportDedResults.R
 #
-# Copyright 2026 Darwin EU Coordination Center
+# Copyright 2024 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -48,7 +48,7 @@ exportDedResults <- function(
     df_ded <- results$drugExposureDiagnostics
   }
 
-  if (nrow(df_ded$result) == 0) {
+  if (is.null(df_ded$result) || nrow(df_ded$result) == 0) {
     ParallelLogger::logInfo("No DrugExposureDiagnostics results to export")
     return()
   }
@@ -58,15 +58,23 @@ exportDedResults <- function(
 
   outputFilename <- sprintf('ded_results_%s_%s.csv', results$databaseId, format(Sys.time(), "%Y%m%d"))
 
-  dedResult %>%
-    # add metadata
-    rbind(c(
+  metadata <- c(
       sprintf("Execution Date: %s", results$executionDate),
       sprintf("Source Release Date: %s", results$cdmSource$SOURCE_RELEASE_DATE),
       sprintf("CDM Release Date: %s", results$cdmSource$CDM_RELEASE_DATE),
       sprintf("DED Version: %s", dedVersion),
-      rep(NA, ncol(dedResult) - 4)
-    )) %>%
+      sprintf("Execution Duration: %.1f s", df_ded$duration)
+  )
+  metadata <- setNames(c(metadata, rep(NA, ncol(dedResult) - length(metadata))), names(dedResult))
+
+  dedResult %>%
+    # Numeric into character to be able to add metadata rows
+    mutate(
+      `#Records` = as.character(.data$`#Records`),
+      `#Persons` = as.character(.data$`#Persons`),
+    ) %>%
+    # add metadata
+    rbind(metadata) %>%
     write.csv(
       file = file.path(outputFolder, outputFilename),
       row.names = TRUE # first column will be removed when uploading to portal
@@ -76,14 +84,15 @@ exportDedResults <- function(
 
 .formatDedResults <- function(ded_results, dedVersion) {
   ded_results <- ded_results %>%
-    mutate(
-      ingredient_concept_id <- as.character(.data$ingredient_concept_id),
-      # Round counts to nearest 10
-      n_records <- prettyHr(round(.data$n_records / 10) * 10),
-      n_patients <- prettyHr(round(.data$n_patients / 10) * 10)   
-    ) %>%
     # Ingredients with highest record count first
-    arrange(desc(.data$n_records))
+    arrange(desc(.data$n_records)) %>%
+    # Format counts with thousands separator and round to nearest 10, and convert concept id to character to prevent scientific notation
+    mutate(
+      ingredient_concept_id = as.character(.data$ingredient_concept_id),
+      # Round counts to nearest 10
+      n_records = prettyHr(round(.data$n_records / 10) * 10),
+      n_patients = prettyHr(round(.data$n_patients / 10) * 10)   
+    )
 
   # In DED v1.0.9 the dose columns can be missing
   if (!("n_dose_and_missingness" %in% colnames(ded_results))) {
@@ -136,4 +145,64 @@ exportDedResults <- function(
   } else {
     return("Unknown")
   }
+}
+
+#' Export Performance Benchmark results to csv file
+#'
+#' @param results results object from \code{cdmOnboarding}
+#' @param outputFolder folder to store the results
+#' @return Writes to outputFolder a csv file with the Benchmark results
+#' @export
+#' @importFrom stats setNames
+exportPerformanceBenchmark <- function(results, outputFolder = getwd()) {
+  # Get performance results
+  performanceResults <- results$performanceResults
+
+  # Combine all benchmarks to one dataframe, add a column for the benchmark type, the analysis name and the time taken
+  benchmarkResults <- bind_rows(
+    performanceResults$cdmConnectorBenchmark$result |>
+      mutate(
+        benchmark = 'CdmConnector',
+        .data$task,
+        .data$time_taken_secs,
+        .keep = 'none'
+      ),
+    performanceResults$analyticsBenchmark$result |>
+      mutate(
+        benchmark = .data$package_name,
+        task = .data$group_level,
+        time_taken_secs = as.numeric(.data$estimate_value),
+        .keep = 'none'
+      ),
+    performanceResults$cohortBenchmark |>
+      mutate(
+        benchmark = 'Cohort Generation',
+        task = .data$cohort_name,
+        time_taken_secs = .data$duration,
+        .keep = 'none'
+      )
+  ) |>
+    mutate(
+      timeTaken = prettyunits::pretty_sec(.data$time_taken_secs),
+      .keep = 'unused'
+    )
+  
+  # Metadata
+  metadata <- c(
+    sprintf("Execution Date: %s", results$executionDate),
+    sprintf("Source Release Date: %s", results$cdmSource$SOURCE_RELEASE_DATE),
+    sprintf("CDM Release Date: %s", results$cdmSource$CDM_RELEASE_DATE)
+  )
+  metadata <- setNames(c(metadata, rep(NA, ncol(benchmarkResults) - length(metadata))), names(benchmarkResults))
+
+  # Write results with metadata
+  outputFilename <- sprintf('benchmark_results_%s_%s.csv', results$databaseId, format(Sys.time(), "%Y%m%d"))
+  benchmarkResults %>%
+    rbind(metadata) %>%
+    write.csv(
+      file = file.path(outputFolder, outputFilename),
+      row.names = TRUE # first column will be removed when uploading to portal
+    )
+
+  ParallelLogger::logInfo(sprintf("> Benchmark results written to '%s'", file.path(outputFolder, outputFilename)))
 }

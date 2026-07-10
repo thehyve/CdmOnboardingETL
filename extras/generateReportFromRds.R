@@ -1,14 +1,14 @@
 # This takes the rds file stored in given path, and writes the docx report to the same path
 path <- readline("Enter the path where CdmOnboarding results are: ")
-
-rds <- list.files(path, '.rds')
+# Strip from quotes
+path <- dirname(gsub("'", "", path))
+rds <- list.files(path, '*.rds')
 results <- readRDS(file.path(path, rds))
 authors <- c('-')
 
 # Optional, add separate DED results
 path_ded <- readline("Enter the path for DED file: ")
 ded_results <- readRDS(path_ded)
-CdmOnboarding::exportDedResults(path_ded)
 results$drugExposureDiagnostics <- ded_results
 
 if (FALSE) {
@@ -18,15 +18,19 @@ if (FALSE) {
   devtools::reload()
 }
 # Optional, make compatible with current version
-results <- CdmOnboarding::compat(results)
-# source('R/compat.R')
-# results <- compat(results)
+source('extras/compat.R')
+results <- compat(results)
 
 CdmOnboarding::generateResultsDocument(
   results = results,
   outputFolder = path,
   authors = authors
 )
+
+# Generate csv for Portal reports
+CdmOnboarding::exportDedResults(results, outputFolder = path)
+CdmOnboarding::exportPerformanceBenchmark(results, outputFolder = path)
+
 
 # Plot regeneration -----
 library(tidyverse)

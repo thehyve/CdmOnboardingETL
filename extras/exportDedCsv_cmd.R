@@ -48,6 +48,11 @@ main <- function() {
     outputFolder = absPath
   )
 
+  CdmOnboarding::exportBenchmark(
+    results,
+    outputFolder = absPath
+  )
+
   if (doMerge) {
     #create new directory for merged results
     outputMergedPath <- file.path(absPath, 'ded_Merge')
@@ -57,7 +62,7 @@ main <- function() {
     results$drugExposureDiagnostics <- dedResults
     saveRDS(results, file.path(outputMergedPath, sprintf("CdmOnboarding_%s_%s.rds", results$databaseId, format(Sys.time(), "%Y%m%d"))))
 
-    results <- CdmOnboarding::compat(results)
+    # results <- CdmOnboarding:::compat(results)
 
     CdmOnboarding::generateResultsDocument(results, outputMergedPath, authors = c())
     print(sprintf("Merged results saved to %s", outputMergedPath))

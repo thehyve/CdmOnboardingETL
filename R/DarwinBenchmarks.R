@@ -105,6 +105,7 @@
 .analyticsBenchmarks <- function(cdm) {
   ParallelLogger::logInfo("Starting execution of DARWIN Benchmarks")
   start_time <- Sys.time()
+  errors = c()
 
   ParallelLogger::logInfo("> (1/4) DrugUtilisation Benchmark")
   duBenchmarkResult <- tryCatch({
@@ -119,6 +120,10 @@
     )
   }, error = function(e) {
     ParallelLogger::logError("Execution of DrugUtilisation Benchmark failed: ", e)
+    errors <- rbind(errors, data.frame(
+      package_name = 'DrugUtilisation',
+      error = e$message
+    ))
     NULL
   })
     
@@ -130,6 +135,10 @@
     )
   }, error = function(e) {
     ParallelLogger::logError("Execution of CodelistGenerator Benchmark failed: ", e)
+    errors <- rbind(errors, data.frame(
+      package_name = 'CodelistGenerator',
+      error = e$message
+    ))
     NULL
   })
 
@@ -141,6 +150,10 @@
     )
   }, error = function(e) {
     ParallelLogger::logError("Execution of IncidencePrevalence Benchmark failed: ", e)
+    errors <- rbind(errors, data.frame(
+      package_name = 'IncidencePrevalence',
+      error = e$message
+    ))
     NULL
   })
 
@@ -158,12 +171,17 @@
     )
   }, error = function(e) {
     ParallelLogger::logError("Execution of CohortCharacteristics Benchmark failed: ", e)
+    errors <- rbind(errors, data.frame(
+      package_name = 'CohortCharacteristics',
+      error = e$message
+    ))
     NULL
   })
 
   # Combine in one resultsObject and Return result with duration
   list(
-    result = rbind(duBenchmarkResult, cgBenchmarkResult, ipBenchmarkResult, ccBenchmarkResult), 
+    result = rbind(duBenchmarkResult, cgBenchmarkResult, ipBenchmarkResult, ccBenchmarkResult),
+    errors = errors,
     duration = as.numeric(difftime(Sys.time(), start_time), units = "secs")
   )
 }
