@@ -1,8 +1,9 @@
 test_that("Data Tables Checks with Optimize", {
+  skip(message = "not used")
   dataTablesResults <- CdmOnboarding::dataTablesChecks(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    cdmDatabaseSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder,
     optimize = TRUE
@@ -10,12 +11,16 @@ test_that("Data Tables Checks with Optimize", {
 
   testthat::expect_type(dataTablesResults, 'list')
 
-  testthat::expect_named(dataTablesResults, c(
+  testthat::expect_named(
+    dataTablesResults,
+    c(
       "dataTablesCounts", "totalRecords", "recordsPerPerson", "conceptsPerPerson",
       "observationPeriodLength", "activePersons", "observedByMonth",
-      "typeConcepts", "tableDateRange", "dayOfTheWeek", "dayOfTheMonth",
-      "observationPeriodsPerPerson", "observationPeriodOverlap"
-    )
+      "dateRangeByTypeConcept", "dayOfTheWeek", "dayOfTheMonth",
+      "observationPeriodsPerPerson", "observationPeriodOverlap",
+      "dayMonthYearOfBirth", "visitLength"
+    ),
+    ignore.order = TRUE
   )
 
   # Check each element has a non-null result

@@ -7,6 +7,9 @@ used for the DrugExposureDiagnostics check}
 \usage{
 getDedIngredients()
 }
+\value{
+data.frame ingredient concept_id and concept_name
+}
 \description{
 Returns data frame with concept_id and concept_name of drug ingredients
 used for the DrugExposureDiagnostics check

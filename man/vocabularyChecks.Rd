@@ -5,17 +5,16 @@
 \title{The vocabulary checks (for v5.x)}
 \usage{
 vocabularyChecks(
-  connectionDetails,
+  connection,
   cdmDatabaseSchema,
   cdmVersion,
   smallCellCount = 5,
-  sqlOnly = FALSE,
   outputFolder = "output",
   optimize = FALSE
 )
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connection}{An R object of type \code{DatabaseConnectorDbiConnection}}
 
 \item{cdmDatabaseSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.}
@@ -24,8 +23,6 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 Use major release number or minor number only (e.g. 5, 5.3)}
 
 \item{smallCellCount}{To avoid patient identifiability, cells with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions.}
-
-\item{sqlOnly}{Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles}
 
 \item{outputFolder}{Path to store logs and SQL files}
 

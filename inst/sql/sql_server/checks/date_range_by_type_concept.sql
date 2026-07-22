@@ -135,17 +135,6 @@ from (
   from @cdmDatabaseSchema.visit_detail
   group by visit_detail_type_concept_id
   union all
-	select
-  	'Payer Plan Period' as domain,
-    NULL,
-    count_big(*) as count_value,
-		min(payer_plan_period_start_date) as first_start_date,
-		max(payer_plan_period_start_date) as last_start_date,
-    min(payer_plan_period_end_date) as first_end_date,
-    max(payer_plan_period_end_date) as last_end_date
-  from @cdmDatabaseSchema.payer_plan_period
-  group by 1
-  union all
   select
   	'Note' as domain,
     note_type_concept_id,
@@ -167,7 +156,7 @@ from (
     min(episode_end_date) as first_end_date,
     max(episode_end_date) as last_end_date
   from @cdmDatabaseSchema.episode
-  group by  episode_type_concept_id
+  group by episode_type_concept_id
   }
 ) cte
 left join @cdmDatabaseSchema.concept 

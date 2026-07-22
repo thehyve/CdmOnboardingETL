@@ -1,52 +1,24 @@
-#' *******************************************************
-#' -----------------INSTRUCTIONS -------------------------
-#' *******************************************************
-#'
-#' -----------------------------------------------------------------------------------------------
-#' -----------------------------------------------------------------------------------------------
-#' This CodeToRun.R is provided as an example of how to run this package.
-#' Below you will find 2 sections: the 1st is for installing the dependencies
-#' required to run the package and the 2nd for running the package.
-#'
-#' The code below makes use of R environment variables (denoted by "Sys.getenv(<setting>)") to
-#' allow for protection of sensitive information. If you'd like to use R environment variables stored
-#' in an external file, this can be done by creating an .Renviron file in the root of the folder
-#' where you have cloned this code. For more information on setting environment variables please refer to:
-#' https://stat.ethz.ch/R-manual/R-devel/library/base/html/readRenviron.html
-#'
-#' Below is an example .Renviron file's contents:
+#' CodeToRun.R
+#' 
+#' This script provides an example of how to run the CdmOnboarding package.
+#' It retrieves connection details from environment variables defeined your .Renviron file:
+#' Note that these follow DBI driver settings and might differ per DBMS. For postgres:
 #'    DBMS = "postgresql"
-#'    DB_SERVER = "database.server.com"
+#'    DB_HOST = "localhost_or_other_host"
 #'    DB_PORT = 5432
-#'    DB_USER = "database_user_name_goes_here"
+#'    DB_NAME = "your_database_name"
+#'    DB_USER = "your_user"
 #'    DB_PASSWORD = "your_secret_password"
-#'    PATH_TO_DRIVER = "/dbms/driver/folder"
 #'    CDM_SCHEMA = "your_cdm_schema"
 #'    RESULTS_SCHEMA = "your_achilles_results_schema"
 #'
-#' The settings are described in detail on http://ohdsi.github.io/DatabaseConnector/
-#'
-#' Once you have established an .Renviron file, you must restart your R session for R to pick up these new
-#' variables.
-#'
-#' Alternatively, enter the parameters directly in this file, replacing the 'Sys.getenv' calls.
-#'
-#' In section 2 below, you will also need to update the code to use your site specific values. Please scroll
-#' down for specific instructions.
+#' Examples for other DBMS: https://darwin-eu.github.io/CDMConnector/articles/a04_DBI_connection_examples.html
 
-#' *******************************************************
-#' SECTION 1: Install latest version of CdmOnboarding
-#' *******************************************************
-#' Install CdmOnboarding using remotes. Alternatively devtools can be used.
-#' When asked to update packages, select '1' ('update all') (could be multiple times)
-#' When asked whether to install from source, select 'No' (could be multiple times)
+# Install latest version of CdmOnboarding if not already installed
 if (!require(CdmOnboarding)) {
   remotes::install_github("DARWIN-EU/CdmOnboarding")
 }
 
-# *******************************************************
-# SECTION 2: Set Local Details
-# *******************************************************
 library(CdmOnboarding)
 library(Achilles)
 library(DashboardExport)
@@ -75,34 +47,27 @@ achilles(
   sqlDialect = NULL
 )
 
-# fill out the connection details -----------------------------------------------------------------------
-dbms <- 'postgresql' # Sys.getenv("DBMS")
-user <- 'ohdsi' # Sys.getenv("DB_USER")
-password <- 'ohdsi' # Sys.getenv("DB_PASSWORD")
-server <- 'localhost/postgres' # Sys.getenv("DB_SERVER")
-port <- 5432 # Sys.getenv("DB_PORT")
-pathToDriver <- '~/Documents/postgresqlV42.2.18/' # Sys.getenv("PATH_TO_DRIVER")
-connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = dbms,
-  server = server,
-  port = port,
-  user = user,
-  password = password,
-  pathToDriver = pathToDriver
+# Fill out the DBI connection details -----------------------------------------------------------------------
+connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+  dbms = Sys.getenv("DBMS"),
+  drv = RPostgres::Postgres(),
+  host = Sys.getenv("DB_HOST"),
+  port = Sys.getenv("DB_PORT"),
+  dbname = Sys.getenv("DB_NAME"),
+  user = Sys.getenv("DB_USER"),
+  password = Sys.getenv("DB_PASSWORD")
 )
 
 # Details for connecting to the CDM
-cdmDatabaseSchema <- 'cdm_tsc' # Sys.getenv("CDM_SCHEMA")
-resultsDatabaseSchema <- 'results' # Sys.getenv("RESULTS_SCHEMA")
-# vocabDatabaseSchema <- 'vocab' #cdmDatabaseSchema
-oracleTempSchema <- NULL
+cdmSchema <- Sys.getenv("CDM_SCHEMA")
+resultsSchema <- Sys.getenv("RESULTS_SCHEMA")
 
 # Details specific to the database:
 databaseId <- 'Test' # Sys.getenv("DATABASE_ID")
 authors <- c('C-path') # used on the title page
 
-# URL to the WebAPI that your local Atlas instance uses, e.g. http://localhost:8080/WebAPI
-baseUrl <- 'http://localhost:8080/WebAPI' # Sys.getenv("WEBAPI_BASEURL")
+# (optional) URL to the WebAPI that your local Atlas instance uses, e.g. http://localhost:8080/WebAPI
+baseUrl <- Sys.getenv("WEBAPI_BASEURL")
 
 # (optional) Path to your DQD results file
 dqdJsonPath <- '~/Documents/CdmOnboarding/output/results_TSC.json'
@@ -116,9 +81,8 @@ verboseMode <- TRUE
 # *******************************************************
 results <- CdmOnboarding::cdmOnboarding(
   connectionDetails = connectionDetails,
-  cdmDatabaseSchema = cdmDatabaseSchema,
-  resultsDatabaseSchema = resultsDatabaseSchema,
-  oracleTempSchema = oracleTempSchema,
+  cdmSchema = cdmSchema,
+  resultsSchema = resultsSchema,
   databaseId = databaseId,
   authors = authors,
   smallCellCount = smallCellCount,
