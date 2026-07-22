@@ -16,6 +16,6 @@ select
     p90_value,
     max_value
 from @resultsDatabaseSchema.achilles_results_dist
-join @cdmDatabaseSchema.concept on stratum_1 = cast(concept_id as VARCHAR)
+left join @cdmDatabaseSchema.concept on stratum_1 = cast(concept_id as VARCHAR)
 where analysis_id IN (213, 1313)
 ;

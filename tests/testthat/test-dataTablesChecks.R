@@ -1,21 +1,24 @@
 test_that("Data Tables Checks", {
   dataTablesResults <- CdmOnboarding::dataTablesChecks(
-    connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
-    resultsDatabaseSchema = params$resultsDatabaseSchema,
+    connection = params$connection,
+    cdmDatabaseSchema = params$cdmSchema,
+    resultsDatabaseSchema = params$resultsSchema,
     cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder
   )
 
   testthat::expect_type(dataTablesResults, 'list')
 
-  testthat::expect_named(dataTablesResults, c(
+  testthat::expect_named(
+    dataTablesResults,
+    c(
       "dataTablesCounts", "totalRecords", "recordsPerPerson", "conceptsPerPerson",
       "observationPeriodLength", "activePersons", "observedByMonth",
-      "typeConcepts", "tableDateRange", "dayOfTheWeek", "dayOfTheMonth",
+      "dateRangeByTypeConcept", "dayOfTheWeek", "dayOfTheMonth",
       "observationPeriodsPerPerson", "observationPeriodOverlap",
-      "dayMonthYearOfBirth"
-    )
+      "dayMonthYearOfBirth", "visitLength"
+    ),
+    ignore.order = TRUE
   )
 
   for (name in names(dataTablesResults)) {

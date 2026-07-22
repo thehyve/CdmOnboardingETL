@@ -6,10 +6,9 @@
 \usage{
 cdmOnboarding(
   connectionDetails,
-  cdmDatabaseSchema,
-  resultsDatabaseSchema,
-  scratchDatabaseSchema = resultsDatabaseSchema,
-  oracleTempSchema = resultsDatabaseSchema,
+  cdmSchema,
+  resultsSchema,
+  writeSchema = resultsSchema,
   databaseId,
   databaseName,
   databaseDescription,
@@ -19,30 +18,26 @@ cdmOnboarding(
   runPerformanceChecks = TRUE,
   runWebAPIChecks = TRUE,
   runDedChecks = TRUE,
+  runDataHashByTable = TRUE,
   smallCellCount = 5,
-  baseUrl = "",
-  sqlOnly = FALSE,
+  baseUrl = NULL,
   outputFolder = "output",
   verboseMode = TRUE,
   dqdJsonPath = NULL,
-  optimize = FALSE,
-  dedIngredientIds = NULL
+  optimize = FALSE
 )
 }
 \arguments{
-\item{connectionDetails}{An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.}
+\item{connectionDetails}{An R object of type \code{ConnectionDetails} or \code{DbiConnectionDetails} created using the function \code{createDbiConnectionDetails} in the \code{DatabaseConnector} package.}
 
-\item{cdmDatabaseSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
+\item{cdmSchema}{Fully qualified name of database schema that contains OMOP CDM schema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.}
 
-\item{resultsDatabaseSchema}{Fully qualified name of database schema that we can write final results to. Default is cdmDatabaseSchema.
-The Achilles results are read from this table.
+\item{resultsSchema}{Fully qualified name of database schema that holds the the Achilles results.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_results.dbo'.}
 
-\item{scratchDatabaseSchema}{Fully qualified name of database schema that we can write temporary tables to. Default is resultsDatabaseSchema.
+\item{writeSchema}{Fully qualified name of database schema that we can write temporary tables to. Default is resultsDatabaseSchema.
 On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_scratch.dbo'.}
-
-\item{oracleTempSchema}{For Oracle only: the name of the database schema where you want all temporary tables to be managed. Requires create/insert permissions to this database.}
 
 \item{databaseId}{ID of your database, this will be used as subfolder for the results and naming of the report}
 
@@ -62,11 +57,11 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 
 \item{runDedChecks}{Boolean to determine if DrugExposureDiagnostics checks need to be run. Default = TRUE}
 
+\item{runDataHashByTable}{Boolean to determine if CdmDataHashByTable need to be run. Default = TRUE}
+
 \item{smallCellCount}{To avoid patient identifiability, source values with small counts (<= smallCellCount) are deleted. Set to NULL if you don't want any deletions. (default 5)}
 
 \item{baseUrl}{WebAPI url, example: http://server.org:80/WebAPI}
-
-\item{sqlOnly}{Boolean to determine if Achilles should be fully executed. TRUE = just generate SQL files, don't actually run, FALSE = run Achilles}
 
 \item{outputFolder}{Path to store logs and SQL files}
 
@@ -75,8 +70,6 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 \item{dqdJsonPath}{Path to the json of the DQD}
 
 \item{optimize}{Boolean to determine if heuristics will be used to speed up execution. Currently only implemented for postgresql databases. Default = FALSE}
-
-\item{dedIngredientIds}{DEPRECATED, default ingredients are always used (\code{getDedIngredients()}).}
 }
 \value{
 \if{html}{\out{<div class="sourceCode">}}\preformatted{                            An object of type \code{achillesResults} containing details for connecting to the database containing the results
@@ -87,4 +80,38 @@ On SQL Server, this should specifiy both the database and the schema, so for exa
 }
 \details{
 \code{cdmOnboarding} runs the CDM Onboarding procedure. Executing the checks and outputing a results document
+}
+\examples{
+\dontrun{
+# Postgres
+connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+  dbms = "postgresql",
+  drv = RPostgres::Postgres(),
+  dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+  host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+  user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+  password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
+)
+# SQL Server
+connectionDetails <- DatabaseConnector::createDbiConnectionDetails(
+  dbms = "sql server",
+  drv = odbc::odbc(),
+  Driver = "ODBC Driver 18 for SQL Server",
+  Server = Sys.getenv("CDM5_SQL_SERVER_SERVER"),
+  Database = Sys.getenv("CDM5_SQL_SERVER_CDM_DATABASE"),
+  UID = Sys.getenv("CDM5_SQL_SERVER_USER"),
+  PWD = Sys.getenv("CDM5_SQL_SERVER_PASSWORD"),
+  TrustServerCertificate = 'yes',
+  Port = Sys.getenv("DB_PORT")
+)
+results <- CdmOnboarding::cdmOnboarding(
+  connectionDetails = connectionDetails,
+  cdmSchema = Sys.getenv("CDM_SCHEMA"),
+  resultsSchema = Sys.getenv("RESULTS_SCHEMA"),
+  databaseId = Sys.getenv("DATABASE_ID"),
+  authors = authors,
+  baseUrl = Sys.getenv("WEBAPI_BASEURL")
+)
+unlink("output", recursive = TRUE, force = TRUE)#' 
+}
 }

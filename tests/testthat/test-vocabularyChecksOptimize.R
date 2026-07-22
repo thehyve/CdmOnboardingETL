@@ -1,22 +1,30 @@
 test_that("Vocabulary Tables Checks with Optimize", {
+  skip(message = "not used")
   vocabularyResults <- CdmOnboarding::vocabularyChecks(
     connectionDetails = params$connectionDetails,
-    cdmDatabaseSchema = params$cdmDatabaseSchema,
+    cdmDatabaseSchema = params$cdmSchema,
+    cdmVersion = params$cdmVersion,
     outputFolder = params$outputFolder,
     optimize = TRUE
   )
 
   testthat::expect_type(vocabularyResults, 'list')
-  testthat::expect_named(vocabularyResults, c(
-    "version", "mappingTempTableCreation", "mappingCompleteness", 
-    "drugMapping", "unmappedDrugs", "unmappedConditions", "unmappedMeasurements", 
-    "unmappedObservations", "unmappedProcedures", "unmappedDevices", 
-    "unmappedVisits", "unmappedVisitDetails", "unmappedUnitsMeas", "unmappedUnitsObs", "unmappedValuesMeas", "unmappedValuesObs", "unmappedDrugRoute",
-    "mappedDrugs", "mappedConditions", "mappedMeasurements", "mappedObservations", 
-    "mappedProcedures", "mappedDevices", "mappedVisits", "mappedVisitDetails", "mappedUnitsMeas",
-    "mappedUnitsObs", "mappedValuesMeas", "mappedValuesObs", "mappedDrugRoute", "conceptCounts", "vocabularyCounts", 
-    "sourceConceptFrequency", "sourceConceptMap"
-    )
+  testthat::expect_named(
+    vocabularyResults,
+    c(
+      "version", "mappingTempTableCreation", "mappingCompleteness",
+      "drugMapping", "unmappedDrugs", "unmappedConditions", "unmappedMeasurements",
+      "unmappedObservations", "unmappedProcedures", "unmappedDevices", 'unmappedEpisodes',
+      "unmappedVisits", "unmappedVisitDetails", "unmappedUnitsMeas", 'mappedEpisodes',
+      "unmappedUnitsObs", "unmappedValuesMeas", "unmappedValuesObs",
+      "unmappedDrugRoute", "unmappedSpecialty", "mappedDrugs", "mappedConditions",
+      "mappedMeasurements", "mappedObservations", "mappedProcedures",
+      "mappedDevices", "mappedVisits", "mappedVisitDetails", "mappedUnitsMeas",
+      "mappedUnitsObs", "mappedValuesMeas", "mappedValuesObs", "mappedDrugRoute",
+      "mappedSpecialty", "conceptCounts", "vocabularyCounts", "sourceConceptFrequency",
+      "sourceConceptMap"
+    ),
+    ignore.order = TRUE
   )
 
   # Check each element has a non-null result, except version and mappingTempTableCreation

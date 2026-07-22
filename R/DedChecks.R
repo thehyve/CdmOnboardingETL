@@ -1,6 +1,6 @@
 # @file DedChecks
 #
-# Copyright 2023 Darwin EU Coordination Center
+# Copyright 2026 Darwin EU Coordination Center
 #
 # This file is part of CdmOnboarding
 #
@@ -20,63 +20,89 @@
 # @author Maxim Moinat
 
 #' Run DrugExposureDiagnostics for a set of default ingredient concepts
-#' @param connectionDetails An R object of type \code{connectionDetails} created using the function \code{createConnectionDetails} in the \code{DatabaseConnector} package.
-#' @param cdmDatabaseSchema Fully qualified name of database schema that contains OMOP CDM schema.
-#'                          On SQL Server, this should specifiy both the database and the schema, so for example, on SQL Server, 'cdm_instance.dbo'.
+#' @param cdm An R object of type \code{cdm_reference}
 #' @returns list of DED diagnostics_summary and duration
-.runDedChecks <- function(
-    connectionDetails,
-    cdmDatabaseSchema,
-    scratchDatabaseSchema
-) {
-    dedIngredients <- getDedIngredients()
-    dedIngredientIds <- dedIngredients$concept_id
-
-    ParallelLogger::logInfo(sprintf(
-        "Starting execution of DrugExposureDiagnostics for %s ingredients",
-        length(dedIngredientIds)
+.runDedChecks <- function(cdm) {
+  dedVersion <- packageVersion(pkg = "DrugExposureDiagnostics")
+  if (dedVersion <= '1.0.5') {
+    ParallelLogger::logError(sprintf(
+      "Unsupported version of DrugExposureDiagnostics installed: %s.",
+      dedVersion
     ))
+    stop("Unsupported version of DrugExposureDiagnostics installed.")
+  }
 
-    tryCatch({
-        connection <- DatabaseConnector::connect(connectionDetails)
-        cdm <- CDMConnector::cdm_from_con(
-          connection,
-          cdm_schema = cdmDatabaseSchema,
-          write_schema = scratchDatabaseSchema
-        )
+  dedIngredients <- getDedIngredients()
+  ParallelLogger::logInfo(sprintf(
+    "Starting execution of DrugExposureDiagnostics for %d ingredient%s",
+    nrow(dedIngredients),
+    if (nrow(dedIngredients) > 1) 's' else ''
+  ))
 
-        ded_start_time <- Sys.time()
+  ded_start_time <- Sys.time()
+  # Gives error when run as part of the package, but not when run individually;
+  #   DED checks failed: Error in `dplyr::collect()`:
+  # ! Failed to collect lazy table.
+  # Caused by error:
+  # ! Failed to prepare query : ERROR:  syntax error at or near ","
+  # LINE 1: SELECT 1.*, route, concept_name AS ingredient_name
+  dedResults <- tryCatch({
+    DrugExposureDiagnostics::executeChecks(
+      cdm = cdm,
+      ingredients = dedIngredients$concept_id,
+      checks = c("missing", "exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
+      minCellCount = 5,
+      sample = NULL,
+      earliestStartDate = "2005-01-01"
+    )
+  }, error = function(e) {
+    ParallelLogger::logError("DED checks failed: ", e)
+    ParallelLogger::logError(conditionMessage(e))
+    NULL
+  })
 
-        # Reduce output lines by suppressing both warnings and messages. Only progress bars displayed.
-        suppressWarnings(suppressMessages(
-          dedResults <- DrugExposureDiagnostics::executeChecks(
-            cdm = cdm,
-            ingredients = dedIngredientIds,
-            checks = c("exposureDuration", "type", "route", "dose", "quantity", "diagnosticsSummary"),
-            minCellCount = 5,
-            sample = 1e+06,
-            earliestStartDate = "2010-01-01"
-          )
-        ))
+  duration <- as.numeric(difftime(Sys.time(), ded_start_time), units = "secs")
+  
+  ParallelLogger::logInfo(sprintf("Executing DrugExposureDiagnostics took %.2f seconds.", duration))
 
-        duration <- as.numeric(difftime(Sys.time(), ded_start_time), units = "secs")
-        ParallelLogger::logInfo(sprintf("Executing DrugExposureDiagnostics took %.2f seconds.", duration))
-        # Return result with duration
-        list(result = dedResults$diagnosticsSummary, duration = duration)
-      },
-      error = function(e) {
-        ParallelLogger::logError("Execution of DrugExposureDiagnostics failed: ", e)
-        NULL
-      },
-      finally = {
-        DatabaseConnector::disconnect(connection)
-        rm(connection)
-      }
+  mappingLevel <- tryCatch({
+    getMappingLevel(dedResults)
+  }, error = function(e) {
+    ParallelLogger::logWarn("Could not generate mapping level summary. ", e)
+    NULL
+  })
+
+  # Return result with duration
+  list(
+    result = dedResults$diagnosticsSummary,
+    resultMappingLevel = mappingLevel,
+    duration = duration,
+    packageVersion = dedVersion
+  )
+}
+
+#' Get drug class levels from DrugExposureDiagnostics results
+#' @param dedResults DrugExposureDiagnostics results object
+#' @return data frame with for each ingredient and concept_class_id the number of concepts and records
+#' @export
+getMappingLevel <- function(dedResults) {
+  if (is.null(dedResults)) {
+    return(NULL)
+  }
+  dedResults$conceptSummary %>%
+    dplyr::group_by(
+      .data$ingredient,
+      .data$concept_class_id
+    ) %>%
+    dplyr::summarise(
+      n_concepts = n(),
+      n_records = sum(.data$n_records, na.rm = TRUE)
     )
 }
 
 #' Returns data frame with concept_id and concept_name of drug ingredients
 #' used for the DrugExposureDiagnostics check
+#' @return data.frame ingredient concept_id and concept_name
 #' @export
 getDedIngredients <- function() {
   dedIngredients <- data.frame(
@@ -91,7 +117,8 @@ getDedIngredients <- function() {
       1154343,
       1550557,
       1703687,
-      40225722),
+      40225722
+    ),
     concept_name = c(
       "hepatitis B surface antigen vaccine",
       "latanoprost",

@@ -1,58 +1,67 @@
 Package: CdmOnboarding
-Title: Generate report on an OMOP CDM instance
-Version: 3.0.1
-Authors@R: 
-  c(person(given = "Peter",
-           family = "Rijnbeek",
+Title: Generate Onboarding Report for the OMOP Common Data Model
+Version: 4.1.1
+Authors@R:
+  c(person("Maxim", "Moinat",
            role = c("aut", "cre"),
-           email = "p.rijnbeek@erasmusmc.nl",
-           comment = c(ORCID = "https://orcid.org/0000-0003-0621-1979")),
-    person(given = "Maxim",
-           family = "Moinat",
+           email = "m.moinat@darwin-eu.org",
+           comment = c(ORCID = "https://orcid.org/0000-0001-8473-2433")),
+    person("Peter", "Rijnbeek",
            role = "aut",
-           email = "m.moinat@erasmusmc.nl",
-           comment = c(ORCID = "https://orcid.org/0000-0001-8473-2433"))
+           email = "p.rijnbeek@darwin-eu.org",
+           comment = c(ORCID = "https://orcid.org/0000-0003-0621-1979")),
+    person("Anne", "van Winzum",
+           role = "ctb",
+           email = "a.vanwinzum@darwin-eu.org"),
+    person("Erasmus MC", role = c("cph"))
    )
-Description: The goal this R Package is to generate a report to provide insight into the completeness, transparency and quality of the performed Extraction Transform, and Load (ETL) process and the readiness of the data partner to be onboarded in the data network and participate in research studies.
+Maintainer: Maxim Moinat <m.moinat@darwin-eu.org>
+Description: Generates a report for observational health data in the 
+  Observational Medical Outcomes Partnership (OMOP) Common Data Model format.
+  The report, a 'Word' document, provides insight into the completeness, transparency and quality.
+  More information can be found at <https://ohdsi-europe.org/images/symposium-2024/Posters/OHDSIEU2024_DARWINEU_CDMOnboarding_Poster%20-%20Sofia%20Bazakou.pdf>.
 License: Apache License (>= 2)
-VignetteBuilder: knitr
 URL: https://github.com/darwin-eu/CdmOnboarding
-BugReports: https://github.com/darwin-eu/CdmOnboarding/issue
+BugReports: https://github.com/darwin-eu/CdmOnboarding/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 Depends: 
-    R (>= 4.0.0),
-    DatabaseConnector (>= 5.0.2)
+  R (>= 4.2.0)
 Imports:
-    ROhdsiWebApi (>= 1.1.2),
-    ParallelLogger,
-    SqlRender,
-    DrugExposureDiagnostics (>= 1.0.0),
-    CDMConnector (>= 1.0.0),
-    benchmarkme,
-    prettyunits,
-    tools,
-    dplyr,
-    officer,
-    data.table,
-    lubridate,
-    ggplot2,
-    jsonlite,
-    stats,
-    cowplot,
-    scales,
-    stringr
+  DatabaseConnector (>= 6.0.0),
+  ParallelLogger,
+  SqlRender,
+  CDMConnector (>= 2.3.0),
+  DrugExposureDiagnostics (>= 1.1.5),
+  CodelistGenerator (>= 4.0.0),
+  CohortCharacteristics (>= 1.1.1),
+  DrugUtilisation (>= 1.1.0),
+  IncidencePrevalence (>= 1.2.0),
+  benchmarkme,
+  prettyunits,
+  dplyr,
+  tidyr,
+  officer,
+  data.table,
+  lubridate,
+  ggplot2,
+  jsonlite,
+  stats,
+  cowplot,
+  scales,
+  httr,
+  utils,
+  checkmate
 Suggests:
-    flextable,
-    devtools,
-    knitr,
-    testthat (>= 3.0.0),
-    Eunomia,
-    Achilles
-Remotes:
-    OHDSI/ROhdsiWebApi,
-    OHDSI/Eunomia,
-    OHDSI/Achilles
+  DBI,
+  RPostgres,
+  odbc,
+  duckdb,
+  devtools,
+  testthat (>= 3.0.0),
+  withr,
+  stringr,
+  Achilles (>= 1.7.2)
 Config/testthat/edition: 3

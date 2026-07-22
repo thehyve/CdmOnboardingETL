@@ -5,8 +5,12 @@
 ^LICENSE\.md$
 ^extras$
 ^output$
+^local$
 ^errorReport.+\.txt$
 ^.+session\.sql$
 ^\.vscode$
 ^\.lintr$
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
