@@ -1,6 +1,6 @@
 -- top 25 unmapped
 
-select top 25
+select
 	ROW_NUMBER() OVER(ORDER BY num_records desc) as row_num,
 	source_value as source_value,
   CAST(source_concept_id AS VARCHAR) as source_concept_id,
