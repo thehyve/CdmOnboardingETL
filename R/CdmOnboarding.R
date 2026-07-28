@@ -203,6 +203,15 @@ cdmOnboarding <- function(
   }
 
   tryCatch({
+    exportUnmapped(
+      results = results,
+      outputFolder = outputFolder
+    )
+  }, error = function(e) {
+    ParallelLogger::logError("Could not create unmapped source values export: ", e)
+  })
+
+  tryCatch({
     bundledResultsLocation <- .bundleResults(outputFolder, databaseId)
     ParallelLogger::logInfo("> All generated CDM Onboarding results are bundled for sharing at: ", bundledResultsLocation)
   }, error = function(e) {
