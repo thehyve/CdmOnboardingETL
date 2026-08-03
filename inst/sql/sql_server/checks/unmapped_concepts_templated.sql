@@ -1,6 +1,7 @@
--- top 25 unmapped
+-- top 500000 unmapped, assumed that most tables will be smaller than this
+-- limit is kept to prevent crashing due to extremely large tables
 
-select
+select top 500000
 	ROW_NUMBER() OVER(ORDER BY num_records desc) as row_num,
 	source_value as source_value,
   CAST(source_concept_id AS VARCHAR) as source_concept_id,
