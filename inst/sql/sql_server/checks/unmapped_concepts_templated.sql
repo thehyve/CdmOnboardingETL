@@ -1,11 +1,12 @@
--- top 25 unmapped
+-- top 500000 unmapped, assumed that most tables will be smaller than this
+-- limit is kept to prevent crashing due to extremely large tables
 
-select top 25
+select top 500000
 	ROW_NUMBER() OVER(ORDER BY num_records desc) as row_num,
 	source_value as source_value,
   CAST(source_concept_id AS VARCHAR) as source_concept_id,
   concept.concept_name as source_concept_name,
-	floor((num_records+99)/100)*100 as n_records,
+	num_records as n_records,
 	100.0 * num_records/t.total_records as p_records
 from #@cdmDomain as cte
 cross join (select sum(num_records) as total_records from #@cdmDomain) t

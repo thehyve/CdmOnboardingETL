@@ -206,3 +206,56 @@ exportPerformanceBenchmark <- function(results, outputFolder = getwd()) {
 
   ParallelLogger::logInfo(sprintf("> Benchmark results written to '%s'", file.path(outputFolder, outputFilename)))
 }
+
+#' Export Unmapped source values per OMOP table to excel file
+#'
+#' @param results results object from \code{cdmOnboarding}
+#' @param outputFolder folder to store the results
+#' @return Writes to outputFolder an xlsx file with the unmapped source values per domain
+#' @export
+exportUnmapped <- function(results,
+                           outputFolder = getwd()) {
+  # Check if the output folder exists
+  if (!dir.exists(outputFolder)) {
+    dir.create(outputFolder, recursive = TRUE)
+  }
+  
+  # Get unmapped concepts for each OMOP table
+  unmappedSourceValues <- list(
+    "Drugs" = results$vocabularyResults$unmappedDrugs$result,
+    "Conditions" = results$vocabularyResults$unmappedConditions$result,
+    "Measurements" = results$vocabularyResults$unmappedMeasurements$result,
+    "Observations" = results$vocabularyResults$unmappedObservations$result,
+    "Procedures" = results$vocabularyResults$unmappedProcedures$result,
+    "Devices" = results$vocabularyResults$unmappedDevices$result,
+    "Visits" = results$vocabularyResults$unmappedVisits$result,
+    "Visit Details" = results$vocabularyResults$unmappedVisitDetails$result,
+    "Meas. Units" = results$vocabularyResults$unmappedUnitsMeas$result,
+    "Obs. Units" = results$vocabularyResults$unmappedUnitsObs$result,
+    "Meas. Values" = results$vocabularyResults$unmappedValuesMeas$result,
+    "Obs. Values" = results$vocabularyResults$unmappedValuesObs$result,
+    "Drug Route" = results$vocabularyResults$unmappedDrugRoute$result
+  )
+
+  # Filter out the null or empty tables
+  unmappedSourceValues <- Filter(function(x) !is.null(x) && nrow(x) > 0, unmappedSourceValues)
+
+  if (length(unmappedSourceValues) == 0) {
+    ParallelLogger::logInfo("No unmapped source values to export")
+    return(invisible(NULL))
+  }
+
+  # Insert each table's unmapped values into a separate sheet
+  # then exported to an excel file
+  wb <- openxlsx::createWorkbook()
+  for (table_name in names(unmappedSourceValues)) {
+    ParallelLogger::logInfo(sprintf("Exporting unmapped source values for table: %s", table_name))
+    openxlsx::addWorksheet(wb, table_name)
+    openxlsx::writeData(wb, table_name, unmappedSourceValues[[table_name]])
+  }
+
+  excelFilePath <- file.path(outputFolder, sprintf("unmapped_source_values_%s_%s.xlsx", results$databaseId, format(Sys.Date(), "%Y%m%d")))
+  openxlsx::saveWorkbook(wb, excelFilePath, overwrite = TRUE)
+
+  ParallelLogger::logInfo(sprintf("> Unmapped source values written to '%s'", excelFilePath))
+}

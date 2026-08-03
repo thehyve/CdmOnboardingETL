@@ -179,6 +179,10 @@ my_unmapped_section <- function(x, data, domain, smallCellCount) {
     names(data$result) <- c("#", "Source Value", "Source Concept id", "Source Concept Name", "#Records", "%Records")
   }
   # TODO: for unit, value, route; no source concept id field, so better to leave it out of report.
+  if (!is.null(data$result) && nrow(data$result) > 0) {
+    data$result <- utils::head(data$result, 25)
+  }
+
   my_source_value_count_section(x, data, domain, "unmapped", smallCellCount)
 }
 
