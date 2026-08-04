@@ -5,7 +5,16 @@
 [![Lifecycle:stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
-R Package to support the onboarding process of new CDMs in the DARWIN EU Data Network
+An adapted R Package to support the onboarding process of new CDMs in the DARWIN EU Data Network
+
+## About this fork
+This repository is a **fork of [DARWIN-EU/CdmOnboarding](https://github.com/darwin-eu/CdmOnboarding)**. It tracks the upstream project but adds ETL-focused adjustments around **unmapped source value reporting**, namely:
+
+- **Full unmapped source value extraction**: the underlying SQL query no longer limits results to the top 25 unmapped codes per domain (and no longer rounds counts to the nearest 100). Instead, up to 500,000 unmapped rows per domain are retrieved with exact record counts, giving ETL developers the full picture needed to prioritize source-to-concept mapping work.
+- **Excel export of unmapped source values**: a new `exportUnmapped()` function writes the complete unmapped source values for every domain (Drugs, Conditions, Measurements, Observations, Procedures, Devices, Visits, Visit Details, Units, Values, Drug Route, etc.) to a multi-sheet `.xlsx` file, one sheet per domain. This runs automatically as part of `cdmOnboarding(...)` and is saved to the output folder alongside the other results.
+- **Word document unchanged**: the generated onboarding report still only displays the top 25 unmapped codes per domain (as before), keeping the document concise—the full detail is available separately in the Excel export.
+
+These changes are intended to make it easier for users to identify and resolve unmapped source values without being limited to a small sample.
 
 # Introduction
 The DARWIN EU Coordination Center (CC) is resposonsible for building a data network to support EMA and stakeholders to answer regulatory research questions. To support the onboarding process of data sources, the CdmOnboarding R package will generate an onboarding document that is used by the CC and EMA to assess the quality and readiness of the CDM for participating in regulatory studies. 

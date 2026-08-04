@@ -1,3 +1,6 @@
+# CdmOnboarding 4.1.2
+* Unmapped values are now fully queried and exported to an Excel file, instead of only the top 25 unmapped values.
+
 # CdmOnboarding 4.1.1
 
  * Fixes for DED export
